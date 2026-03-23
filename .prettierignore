@@ -1,0 +1,11 @@
+node_modules/
+miniprogram_npm/
+dist/
+*.min.js
+project.config.json
+project.private.config.json
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+*.log
+.DS_Store

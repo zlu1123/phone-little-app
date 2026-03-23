@@ -1,0 +1,212 @@
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+/* Logo 区域 */
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 80rpx;
+  padding-bottom: 60rpx;
+}
+
+.logo-wrapper {
+  width: 160rpx;
+  height: 160rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(25, 137, 250, 0.15);
+  margin-bottom: 32rpx;
+}
+
+.app-name {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #323233;
+  margin-bottom: 12rpx;
+}
+
+.app-desc {
+  font-size: 26rpx;
+  color: #969799;
+}
+
+/* 登录/注册切换 Tab */
+.auth-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 30rpx;
+  color: #969799;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.tab-item.active {
+  color: #1989fa;
+  font-weight: 600;
+}
+
+.tab-line {
+  position: absolute;
+  bottom: 4rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 6rpx;
+  background: linear-gradient(135deg, #1989fa 0%, #4dabff 100%);
+  border-radius: 3rpx;
+}
+
+/* 登录区域 */
+.login-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 40rpx;
+}
+
+/* 登录按钮 */
+.login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  margin-bottom: 24rpx;
+  border: none;
+}
+
+.login-btn::after {
+  border: none;
+}
+
+.wechat-btn {
+  background: linear-gradient(135deg, #07c160 0%, #06ad56 100%);
+  color: #fff;
+}
+
+.phone-btn {
+  background: #fff;
+  color: #1989fa;
+  border: 2rpx solid #1989fa;
+}
+
+.btn-text {
+  margin-left: 12rpx;
+}
+
+/* 分隔线 */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 32rpx 0;
+}
+
+.divider .line {
+  flex: 1;
+  height: 1rpx;
+  background: #ebedf0;
+}
+
+.divider-text {
+  padding: 0 24rpx;
+  font-size: 24rpx;
+  color: #969799;
+}
+
+/* 手机号表单 */
+.phone-form {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+.input-field {
+  background: #f7f8fa;
+  border-radius: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.code-field {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.code-input {
+  flex: 1;
+}
+
+.code-btn {
+  flex-shrink: 0;
+  height: 64rpx !important;
+}
+
+.submit-btn {
+  margin-top: 12rpx;
+}
+
+/* 切换表单 */
+.toggle-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  color: #1989fa;
+  padding: 16rpx 0;
+}
+
+.toggle-form text {
+  margin-right: 8rpx;
+}
+
+/* 用户协议 */
+.agreement {
+  padding: 40rpx 20rpx;
+}
+
+.agreement-text {
+  font-size: 24rpx;
+  color: #969799;
+  line-height: 1.6;
+}
+
+.agreement .link {
+  color: #1989fa;
+}
+
+/* 游客入口 */
+.guest-entry {
+  text-align: center;
+  padding: 24rpx 0 60rpx;
+  font-size: 28rpx;
+  color: #969799;
+}
+
+.guest-entry:active {
+  opacity: 0.7;
+}

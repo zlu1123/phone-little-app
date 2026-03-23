@@ -1,0 +1,96 @@
+.my-page {
+  min-height: 100vh;
+  background-color: #f7f8fa;
+  padding-bottom: 20px;
+}
+
+.user-header {
+  background-color: #1989fa;
+  padding: 20px 20px 50px;
+  display: flex;
+  align-items: center;
+  color: #fff;
+  position: relative;
+}
+
+.avatar-container {
+  width: 64px;
+  height: 64px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.nickname {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.desc {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.arrow {
+  opacity: 0.8;
+}
+
+.menu-list {
+  margin-top: -30px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 覆盖 vant cell group 的样式，使其更贴合 */
+.menu-list .van-cell-group--inset {
+  margin: 0 16px;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(100, 101, 102, 0.08);
+}
+
+.contact-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.version-info {
+  text-align: center;
+  margin-top: 30px;
+  color: #c8c9cc;
+  font-size: 12px;
+}
+
+/* 退出登录 */
+.logout-section {
+  padding: 30px 16px 0;
+}
+
+/* 游客登录入口 */
+.login-section {
+  padding: 30px 16px 0;
+}

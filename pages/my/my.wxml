@@ -1,0 +1,64 @@
+<view class="my-page">
+  <!-- 头部用户信息 -->
+  <view class="user-header" style="padding-top: {{ statusBarHeight + navBarHeight + 20 }}px;" bindtap="handleUserInfo">
+    <view class="avatar-container">
+      <image
+        wx:if="{{ isLoggedIn && userInfo.avatarUrl }}"
+        src="{{ userInfo.avatarUrl }}"
+        class="avatar-img"
+        mode="aspectFill"
+      />
+      <van-icon wx:else name="manager" size="40px" color="#fff" />
+    </view>
+    <view class="user-info">
+      <text class="nickname">{{ isLoggedIn ? userInfo.nickName : (isGuest ? '游客用户' : '点击登录') }}</text>
+      <text class="desc">{{ isLoggedIn ? '欢迎回来' : (isGuest ? '登录后享受更多服务' : '登录后查看更多信息') }}</text>
+    </view>
+    <view class="arrow">
+      <van-icon name="arrow" color="#fff" size="16px" />
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="menu-list">
+    <van-cell-group inset>
+      <van-cell title="查询记录" icon="todo-list" is-link url="/pages/history/history" />
+      <van-cell title="联系客服" icon="service" is-link>
+        <button open-type="contact" class="contact-btn"></button>
+      </van-cell>
+      <van-cell title="关于我们" icon="info-o" is-link url="/pages/about/about" />
+      <van-cell title="设置" icon="setting-o" is-link />
+    </van-cell-group>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view class="logout-section" wx:if="{{ isLoggedIn }}">
+    <van-button
+      type="danger"
+      plain
+      round
+      block
+      bind:click="handleLogout"
+      icon="cross"
+    >
+      退出登录
+    </van-button>
+  </view>
+
+  <!-- 游客登录入口 -->
+  <view class="login-section" wx:if="{{ isGuest && !isLoggedIn }}">
+    <van-button
+      type="primary"
+      round
+      block
+      bind:click="handleUserInfo"
+      icon="wechat"
+    >
+      立即登录
+    </van-button>
+  </view>
+
+  <view class="version-info">
+    <text>当前版本 v1.0.0</text>
+  </view>
+</view>

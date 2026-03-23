@@ -1,0 +1,229 @@
+/* pages/imei-query/imei-query.wxss */
+/* 修复页面无法滚动的问题 */
+page {
+  height: auto !important;
+  overflow-y: auto !important;
+  display: block !important;
+}
+
+.imei-page {
+  min-height: 100vh;
+  background-color: #f7f8fa;
+  padding-bottom: 40rpx; /* 底部留白 */
+}
+
+.steps-wrapper {
+  background-color: #fff;
+  padding: 10px 0;
+  margin-bottom: 15px;
+}
+
+.content-container {
+  padding: 0 16px;
+}
+
+.card-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(100, 101, 102, 0.08);
+}
+
+.section-header {
+  margin-bottom: 20px;
+  border-left: 8rpx solid #1989fa;
+  padding-left: 16rpx;
+}
+
+.section-header .title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #323233;
+  line-height: 1.2;
+}
+
+.section-header .subtitle {
+  font-size: 24rpx;
+  color: #969799;
+  margin-top: 8rpx;
+}
+
+/* 上传组件样式优化 */
+.upload-wrapper {
+  margin: 30rpx 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.custom-uploader {
+  width: 100%;
+  display: block;
+}
+
+.custom-uploader .van-uploader {
+  width: 100%;
+}
+
+.custom-uploader .van-uploader__wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.custom-uploader .van-uploader__input-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.custom-uploader .van-uploader__upload {
+  width: 100%;
+  height: 400rpx;
+  background-color: #f7f8fa;
+  border: 1px dashed #dcdee0;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.custom-uploader .van-uploader__preview-image {
+  width: 100%;
+  height: 400rpx;
+  border-radius: 8px;
+}
+
+.custom-uploader .van-uploader__preview {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* 自定义上传区域样式 */
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 400rpx;
+  background-color: #f2f9ff;
+  border: 2rpx dashed #1989fa;
+  border-radius: 24rpx;
+  transition: all 0.3s;
+  box-sizing: border-box;
+  padding: 40rpx;
+}
+
+.upload-area:active {
+  background-color: #e6f1fc;
+  border-color: #0570db;
+}
+
+.upload-icon-wrapper {
+  width: 120rpx;
+  height: 120rpx;
+  background-color: #e6f1fc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.upload-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #323233;
+  margin-bottom: 16rpx;
+}
+
+.upload-hint {
+  font-size: 26rpx;
+  color: #969799;
+}
+
+.loading-wrapper {
+  margin-top: 40rpx;
+  text-align: center;
+  padding: 40rpx;
+}
+
+/* 表单样式 */
+.form-group {
+  margin-bottom: 40rpx;
+}
+
+.action-btn {
+  margin-top: 48rpx;
+}
+
+.mb-3 {
+  margin-bottom: 24rpx;
+}
+
+/* 结果展示样式 */
+.result-content {
+  background-color: #f7f8fa;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 40rpx;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #ebedf0;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item .label {
+  color: #646566;
+  font-size: 28rpx;
+}
+
+.info-item .value {
+  color: #323233;
+  font-weight: 500;
+  font-size: 30rpx;
+}
+
+.text-danger {
+  color: #ee0a24;
+}
+
+.text-success {
+  color: #07c160;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #969799;
+  margin-top: 24rpx;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 动画 */
+.card-section {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
