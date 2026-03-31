@@ -1,4 +1,10 @@
 // pages/imei-query/imei-query.js
+const {
+  API_ENDPOINTS,
+  buildApiUrl,
+  isWechatOcrEnabled
+} = require('../../config');
+
 Page({
   data: {
     // 步骤条状态
@@ -16,6 +22,49 @@ Page({
       sn: '',
       imei: '',
       imei2: ''
+    }
+  },
+
+  onShow() {
+    this.checkLoginStatus();
+  },
+
+  // 检查登录状态
+  checkLoginStatus() {
+    const isGuest = wx.getStorageSync('isGuest');
+    if (isGuest) return; // 游客模式不拦截
+
+    const token = wx.getStorageSync('token');
+    const tokenExpireTime = wx.getStorageSync('tokenExpireTime');
+    const userInfo = wx.getStorageSync('userInfo');
+    const isLoggedIn = wx.getStorageSync('isLoggedIn');
+
+    const now = Date.now();
+
+    // 如果没有 token、用户信息，或者 token 已过期
+    if (
+      !isLoggedIn ||
+      !token ||
+      !userInfo ||
+      !tokenExpireTime ||
+      now > tokenExpireTime
+    ) {
+      // 清除可能过期的状态
+      wx.removeStorageSync('token');
+      wx.removeStorageSync('tokenExpireTime');
+      wx.removeStorageSync('isLoggedIn');
+      wx.removeStorageSync('userInfo');
+
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+
+      setTimeout(() => {
+        wx.navigateTo({
+          url: '/pages/login/login'
+        });
+      }, 1000);
     }
   },
 
@@ -68,18 +117,25 @@ Page({
 
     try {
       // 1. 首选微信小程序OCR（云函数）
-      console.log('开始微信小程序OCR识别...');
-      const wechatOCRResult = await this.tryWechatOCR(file);
+      if (isWechatOcrEnabled()) {
+        console.log('开始微信小程序OCR识别...');
+        const wechatOCRResult = await this.tryWechatOCR(file);
 
-      if (wechatOCRResult.success) {
-        console.log('微信小程序OCR识别成功');
-        this.parseOCRResultToForm(wechatOCRResult.text);
-        this.handleOCRSuccess();
-        return;
+        if (wechatOCRResult.success) {
+          console.log('微信小程序OCR识别成功');
+          this.parseOCRResultToForm(wechatOCRResult.text);
+          this.handleOCRSuccess();
+          return;
+        }
+
+        // 2. 微信OCR失败，尝试后端接口
+        console.log('微信OCR失败，尝试后端接口...');
+      } else {
+        // 开发者工具等场景：跳过微信服务市场OCR，直接走后端
+        console.log(
+          '已禁用微信OCR（当前环境不支持/已关闭开关），直接尝试后端接口...'
+        );
       }
-
-      // 2. 微信OCR失败，尝试后端接口
-      console.log('微信OCR失败，尝试后端接口...');
       const backendOCRResult = await this.tryBackendOCR(file);
 
       if (backendOCRResult.success) {
@@ -109,27 +165,6 @@ Page({
     } finally {
       wx.hideLoading();
     }
-  },
-
-  // 将图片文件读取为 base64
-  readFileAsBase64(filePath) {
-    return new Promise((resolve, reject) => {
-      wx.getFileSystemManager().readFile({
-        filePath,
-        encoding: 'base64',
-        success(res) {
-          const base64Data = String(res.data || '').replace(/[\r\n]/g, '');
-          if (!base64Data) {
-            reject(new Error('图片读取失败，未获取到base64内容'));
-            return;
-          }
-          resolve(base64Data);
-        },
-        fail(err) {
-          reject(new Error(err.errMsg || '读取图片base64失败'));
-        }
-      });
-    });
   },
 
   // 下载网络图片到本地临时文件
@@ -177,21 +212,24 @@ Page({
         ? await this.downloadImageToTempFile(originalFilePath)
         : originalFilePath;
 
-      const base64Image = await this.readFileAsBase64(localFilePath);
-
+      // 使用 wx.serviceMarket.CDN 上传本地文件并获取 URL
+      // 注意：data_type: 3 表示 URL 形式的图片，img_url 字段名不能改
       const res = await wx.serviceMarket.invokeService({
         service: 'wx79ac3de8be320b71',
         api: 'OcrAllInOne',
         data: {
-          img_data: base64Image,
-          data_type: 2,
-          ocr_type: 1
+          // 使用 CDN 方法标记要上传的文件，微信会自动转换成 HTTP URL
+          img_url: new wx.serviceMarket.CDN({
+            type: 'filePath',
+            filePath: localFilePath
+          }),
+          data_type: 3, // 3 表示 URL 形式的图片
+          ocr_type: 8 // 8 表示通用 OCR 识别
         }
       });
 
       const costTime = Date.now() - startTime;
       console.log(`微信OCR服务调用成功，耗时: ${costTime}ms`, res);
-
       const result = res.data || res.result || res;
       let text = '';
 
@@ -264,24 +302,71 @@ Page({
   async tryBackendOCR(file) {
     try {
       console.log('调用后端OCR接口...');
+      const originalFilePath =
+        file?.path || file?.tempFilePath || file?.url || file;
 
-      // 这里使用模拟的后端接口响应（实际项目中替换为真实接口）
-      // 模拟网络请求延迟
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // 模拟后端OCR返回的文本
-      const mockBackendText = `SN: ABC123456789
-                                IMEI: 123456789012345
-                                IMEI2: 987654321098765
-                                设备序列号识别结果`;
-
-      console.log('后端OCR识别到的文本:', mockBackendText);
-
-      if (!mockBackendText || mockBackendText.length < 5) {
-        throw new Error('后端接口未返回有效文字');
+      if (!originalFilePath) {
+        throw new Error('未获取到图片路径');
       }
 
-      return { success: true, text: mockBackendText };
+      // wx.uploadFile 只能上传本地文件路径，如果是网络图先下载
+      const localFilePath = /^https?:\/\//i.test(originalFilePath)
+        ? await this.downloadImageToTempFile(originalFilePath)
+        : originalFilePath;
+
+      return new Promise(resolve => {
+        wx.uploadFile({
+          url: buildApiUrl(API_ENDPOINTS.ocrImageCheck),
+          filePath: localFilePath,
+          name: 'file',
+          success: res => {
+            console.log('后端OCR接口返回:', res);
+            if (res.statusCode === 200) {
+              try {
+                const data = JSON.parse(res.data);
+                let text = '';
+
+                // 尝试从常见的数据结构中提取文本
+                if (data.data && typeof data.data === 'string') {
+                  text = data.data;
+                } else if (data.text) {
+                  text = data.text;
+                } else {
+                  text = this.extractTextFromResult(data);
+                }
+
+                if (!text || text.length < 5) {
+                  resolve({ success: false, error: '后端接口未返回有效文字' });
+                } else {
+                  resolve({ success: true, text: text });
+                }
+              } catch (e) {
+                // 如果解析JSON失败，直接将返回内容作为文本
+                resolve({ success: true, text: res.data });
+              }
+            } else {
+              let errorMsg = `请求失败，状态码：${res.statusCode}`;
+              try {
+                if (res.data && typeof res.data === 'string') {
+                  const parsed = JSON.parse(res.data);
+                  errorMsg =
+                    parsed.desc || parsed.message || parsed.status || errorMsg;
+                }
+              } catch (e) {
+                // 解析失败则忽略，使用默认错误信息
+              }
+              resolve({
+                success: false,
+                error: errorMsg
+              });
+            }
+          },
+          fail: err => {
+            console.warn('后端接口OCR请求失败:', err);
+            resolve({ success: false, error: err.errMsg || '网络请求失败' });
+          }
+        });
+      });
     } catch (error) {
       console.warn('后端接口OCR失败:', error.message);
       return { success: false, error: error.message };

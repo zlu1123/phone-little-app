@@ -19,7 +19,8 @@
     "minifyWXML": true,
     "skylineRenderEnable": true,
     "autoAudits": false,
-    "urlCheck": false
+    "urlCheck": false,
+    "compileHotReLoad": false
   },
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
@@ -29,5 +30,5 @@
   },
   "appid": "wxb9d47f1800720921",
   "editorSetting": {},
-  "libVersion": "3.14.2"
+  "libVersion": "3.14.3"
 }

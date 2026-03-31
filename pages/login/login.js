@@ -375,6 +375,12 @@ Page({
       wx.setStorageSync('isGuest', false);
       wx.setStorageSync('userInfo', mockUserInfo);
 
+      // 缓存 token 和过期时间（模拟 24 小时后过期）
+      const token = 'mock_token_' + Date.now();
+      const expireTime = Date.now() + 24 * 60 * 60 * 1000;
+      wx.setStorageSync('token', token);
+      wx.setStorageSync('tokenExpireTime', expireTime);
+
       this.setData({ isLoading: false });
 
       wx.showToast({
@@ -413,6 +419,12 @@ Page({
       wx.setStorageSync('isLoggedIn', true);
       wx.setStorageSync('isGuest', false);
       wx.setStorageSync('userInfo', mockUserInfo);
+
+      // 缓存 token 和过期时间（模拟 24 小时后过期）
+      const token = 'mock_token_' + Date.now();
+      const expireTime = Date.now() + 24 * 60 * 60 * 1000;
+      wx.setStorageSync('token', token);
+      wx.setStorageSync('tokenExpireTime', expireTime);
 
       this.setData({ isLoading: false });
 

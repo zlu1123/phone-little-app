@@ -22,7 +22,9 @@ Page({
 
     let navBarHeight = 44;
     if (menuButtonInfo) {
-      navBarHeight = (menuButtonInfo.top - systemInfo.statusBarHeight) * 2 + menuButtonInfo.height;
+      navBarHeight =
+        (menuButtonInfo.top - systemInfo.statusBarHeight) * 2 +
+        menuButtonInfo.height;
     }
 
     this.setData({
@@ -38,28 +40,51 @@ Page({
 
   // 检查登录状态
   checkLoginStatus() {
-    const isLoggedIn = wx.getStorageSync('isLoggedIn') || false;
     const isGuest = wx.getStorageSync('isGuest') || false;
+    const isLoggedIn = wx.getStorageSync('isLoggedIn') || false;
+    const token = wx.getStorageSync('token');
+    const tokenExpireTime = wx.getStorageSync('tokenExpireTime');
     const userInfo = wx.getStorageSync('userInfo') || {
       nickName: '微信用户',
       avatarUrl: ''
     };
 
+    const now = Date.now();
+    let isValidLogin = isLoggedIn;
+
+    // 如果不是游客，且 token 不存在或已过期，则视为未登录
+    if (!isGuest && (!token || !tokenExpireTime || now > tokenExpireTime)) {
+      isValidLogin = false;
+      // 清除过期状态
+      wx.removeStorageSync('token');
+      wx.removeStorageSync('tokenExpireTime');
+      wx.removeStorageSync('isLoggedIn');
+      wx.removeStorageSync('userInfo');
+    }
+
     this.setData({
-      isLoggedIn,
+      isLoggedIn: isValidLogin,
       isGuest,
-      userInfo
+      userInfo:
+        isValidLogin || isGuest
+          ? userInfo
+          : { nickName: '微信用户', avatarUrl: '' }
     });
 
     // 如果未登录且不是游客模式，跳转到登录页
-    if (!isLoggedIn && !isGuest) {
-      wx.navigateTo({
-        url: '/pages/login/login'
+    if (!isValidLogin && !isGuest) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
       });
+      setTimeout(() => {
+        wx.navigateTo({
+          url: '/pages/login/login'
+        });
+      }, 1000);
     }
   },
 
-  // 处理点击头像区域
   handleUserInfo() {
     if (this.data.isLoggedIn) {
       // 已登录，可以编辑用户信息或其他操作
@@ -86,6 +111,8 @@ Page({
           wx.removeStorageSync('isLoggedIn');
           wx.removeStorageSync('isGuest');
           wx.removeStorageSync('userInfo');
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('tokenExpireTime');
 
           // 跳转到登录页
           wx.navigateTo({
