@@ -147,8 +147,15 @@
 
 .input-field {
   background: #f7f8fa;
-  border-radius: 8rpx;
+  border-radius: 16rpx;
   margin-bottom: 20rpx;
+  --cell-background-color: transparent;
+  --cell-vertical-padding: 24rpx;
+  --cell-horizontal-padding: 24rpx;
+}
+
+.input-field .van-icon {
+  margin-right: 16rpx;
 }
 
 .code-field {

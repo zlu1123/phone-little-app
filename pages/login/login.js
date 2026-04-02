@@ -1,4 +1,5 @@
 const app = getApp();
+const { API_ENDPOINTS, buildApiUrl } = require('../../config');
 
 Page({
   data: {
@@ -66,12 +67,43 @@ Page({
     wx.login({
       success: loginRes => {
         if (loginRes.code) {
-          // TODO: 调用后端接口，传递 code 和 userInfo 进行登录
-          // 模拟登录成功
-          this.mockLogin({
-            type: 'wechat',
-            userInfo,
-            code: loginRes.code
+          // 调用后端接口，传递 code 和 userInfo 进行登录
+          wx.request({
+            url: buildApiUrl(API_ENDPOINTS.login),
+            method: 'POST',
+            header: {
+              'x-app-wechat': '5c89231b711447acbf995c28c435dc39',
+              'content-type': 'application/json'
+            },
+            data: {
+              code: loginRes.code,
+              userInfo: userInfo
+            },
+            success: res => {
+              if (res.statusCode === 200 && res.data) {
+                // 假设后端返回了 token 和用户信息
+                const data = res.data;
+                this.mockLogin({
+                  type: 'wechat',
+                  userInfo: data.userInfo || userInfo,
+                  phone: data.phone,
+                  token: data.token
+                });
+              } else {
+                wx.showToast({
+                  title: '登录失败，请重试',
+                  icon: 'none'
+                });
+                this.setData({ isLoading: false });
+              }
+            },
+            fail: () => {
+              wx.showToast({
+                title: '网络请求失败',
+                icon: 'none'
+              });
+              this.setData({ isLoading: false });
+            }
           });
         } else {
           wx.showToast({
@@ -115,12 +147,44 @@ Page({
     wx.login({
       success: loginRes => {
         if (loginRes.code) {
-          // TODO: 调用后端接口，传递 code 和 encryptedData/iv 解密手机号
-          this.mockLogin({
-            type: 'phone',
-            code: loginRes.code,
-            encryptedData: e.detail.encryptedData,
-            iv: e.detail.iv
+          // 调用后端接口，传递 code 和 encryptedData/iv 解密手机号
+          wx.request({
+            url: buildApiUrl(API_ENDPOINTS.login),
+            method: 'POST',
+            header: {
+              'x-app-wechat': '5c89231b711447acbf995c28c435dc39',
+              'content-type': 'application/json'
+            },
+            data: {
+              code: loginRes.code,
+              encryptedData: e.detail.encryptedData,
+              iv: e.detail.iv,
+              type: 'phone'
+            },
+            success: res => {
+              if (res.statusCode === 200 && res.data) {
+                const data = res.data;
+                this.mockLogin({
+                  type: 'phone',
+                  phone: data.phone,
+                  token: data.token,
+                  userInfo: data.userInfo
+                });
+              } else {
+                wx.showToast({
+                  title: '登录失败，请重试',
+                  icon: 'none'
+                });
+                this.setData({ isLoading: false });
+              }
+            },
+            fail: () => {
+              wx.showToast({
+                title: '网络请求失败',
+                icon: 'none'
+              });
+              this.setData({ isLoading: false });
+            }
           });
         } else {
           wx.showToast({
@@ -182,11 +246,41 @@ Page({
 
     this.setData({ isLoading: true });
 
-    // TODO: 调用后端接口验证登录
-    this.mockLogin({
-      type: 'password',
-      phone,
-      password
+    // 调用后端接口验证登录
+    wx.request({
+      url: buildApiUrl(API_ENDPOINTS.login),
+      method: 'POST',
+      header: {
+        'x-app-wechat': '5c89231b711447acbf995c28c435dc39',
+        'content-type': 'application/json'
+      },
+      data: {
+        username: phone,
+        password
+      },
+      success: res => {
+        if (res.statusCode === 200 && res.data) {
+          const data = res.data;
+          this.mockLogin({
+            type: 'password',
+            phone: data.phone || phone,
+            token: data.token
+          });
+        } else {
+          wx.showToast({
+            title: '登录失败，请检查账号密码',
+            icon: 'none'
+          });
+          this.setData({ isLoading: false });
+        }
+      },
+      fail: () => {
+        wx.showToast({
+          title: '网络请求失败',
+          icon: 'none'
+        });
+        this.setData({ isLoading: false });
+      }
     });
   },
 
@@ -376,7 +470,7 @@ Page({
       wx.setStorageSync('userInfo', mockUserInfo);
 
       // 缓存 token 和过期时间（模拟 24 小时后过期）
-      const token = 'mock_token_' + Date.now();
+      const token = params.token || 'mock_token_' + Date.now();
       const expireTime = Date.now() + 24 * 60 * 60 * 1000;
       wx.setStorageSync('token', token);
       wx.setStorageSync('tokenExpireTime', expireTime);

@@ -22,9 +22,9 @@ const getEnvVersion = () => {
  * - release：正式版
  */
 const API_BASE_BY_ENV = {
-  develop: 'http://43.164.129.96:8080',
-  trial: 'http://43.164.129.96:8080',
-  release: 'http://43.164.129.96:8080'
+  develop: 'http://43.164.129.96:8090',
+  trial: 'http://43.164.129.96:8090',
+  release: 'http://43.164.129.96:8090'
 };
 
 const getApiBase = () => {
@@ -37,7 +37,9 @@ const getApiBase = () => {
  */
 const API_ENDPOINTS = {
   // 后端 OCR 接口（图片识别）
-  ocrImageCheck: '/image/ocr/imchect'
+  ocrImageCheck: '/image/ocr/imchect',
+  // 登录接口
+  login: '/login'
 };
 
 const joinUrl = (baseUrl, path) => {
