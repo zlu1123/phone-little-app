@@ -19,13 +19,27 @@ Page({
 
     // 表单数据
     formData: {
+      typeCode: '1',
       sn: '',
       imei: '',
       imei2: ''
-    }
+    },
+
+    // 手机型号选择
+    showModelPicker: false,
+    selectedModelName: '苹果',
+    modelOptions: [
+      { name: '苹果', value: '1' },
+      { name: '小米/红米', value: '2' },
+      { name: '华为/荣耀', value: '3' }
+    ]
   },
 
   onShow() {
+    // 同步自定义 tabBar 选中状态
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ active: 0 });
+    }
     this.checkLoginStatus();
   },
 
@@ -103,6 +117,7 @@ Page({
       activeStep: 0,
       queryResult: null,
       formData: {
+        typeCode: this.data.formData.typeCode || '1',
         sn: '',
         imei: '',
         imei2: ''
@@ -397,6 +412,7 @@ Page({
       activeStep: 0,
       queryResult: null,
       formData: {
+        typeCode: this.data.formData.typeCode || '1',
         sn: '',
         imei: '',
         imei2: ''
@@ -529,9 +545,29 @@ Page({
     });
   },
 
+  // 显示手机型号选择器
+  onShowModelPicker() {
+    this.setData({ showModelPicker: true });
+  },
+
+  // 关闭手机型号选择器
+  onCloseModelPicker() {
+    this.setData({ showModelPicker: false });
+  },
+
+  // 选择手机型号
+  onSelectModel(e) {
+    const { name, value } = e.detail;
+    this.setData({
+      selectedModelName: name,
+      'formData.typeCode': value,
+      showModelPicker: false
+    });
+  },
+
   // 查询保修信息
   async handleQuery() {
-    const { sn, imei } = this.data.formData;
+    const { sn, imei, typeCode } = this.data.formData;
 
     // 优先使用序列号，其次使用IMEI
     const queryKey = sn || imei;
@@ -549,49 +585,79 @@ Page({
     });
 
     try {
-      // 模拟后端接口请求
-      // 真实接口 URL: https://data.06api.com/api.php?key=密钥&type=接口标识&sn=串号
-      /*
-      const res = await wx.request({
-        url: `https://data.06api.com/api.php?key=YOUR_KEY&type=YOUR_TYPE&sn=${queryKey}`,
-        method: 'GET',
+      const res = await new Promise((resolve, reject) => {
+        wx.request({
+          url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
+          method: 'GET',
+          data: {
+            typeCode: typeCode,
+            code: queryKey
+          },
+          header: {
+            Authorization: 'Bearer ' + wx.getStorageSync('token')
+          },
+          success: resolve,
+          fail: reject
+        });
       });
 
       const data = res.data;
-      */
 
-      // Mock 数据
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (data.code === 200 && data.data) {
+        const resultData = data.data;
+        const coverageDate = resultData.coverage;
+        let isExpired = false;
+        let warrantyStatus = '未知';
 
-      // 模拟根据不同输入返回不同结果
-      const mockData = {
-        productName: 'iPhone 15 Pro Max',
-        activationDate: '2024-01-15',
-        // 模拟逻辑：如果序列号包含 'X' 则视为过期，否则视为在保
-        isExpired: queryKey.includes('X'),
-        warrantyStatus: queryKey.includes('X') ? '已过保' : '保修中'
-      };
+        if (resultData.activated) {
+          if (coverageDate) {
+            const coverageTime = new Date(coverageDate).getTime();
+            // 使用系统返回的时间或者当前时间
+            const sysTime = resultData.systemTime
+              ? new Date(resultData.systemTime).getTime()
+              : new Date().getTime();
+            // 如果质保时间晚于系统时间，则未过保，可以跳转亚丁屏卫
+            isExpired = coverageTime <= sysTime;
+            warrantyStatus = isExpired ? '已过保' : '保修中';
+          } else {
+            warrantyStatus = '已激活';
+          }
+        } else {
+          warrantyStatus = '未激活';
+          isExpired = true;
+        }
 
-      this.setData({
-        queryResult: mockData,
-        activeStep: 2,
-        isQuerying: false
-      });
+        const mockData = {
+          productName: resultData.model || '未知设备',
+          activationDate: resultData.activateDate || '未知',
+          coverageDate: coverageDate || '未知',
+          isExpired: isExpired,
+          warrantyStatus: warrantyStatus
+        };
 
-      wx.showToast({
-        title: '查询成功',
-        icon: 'success'
-      });
+        this.setData({
+          queryResult: mockData,
+          activeStep: 2,
+          isQuerying: false
+        });
 
-      // 滚动到步骤3
-      this.scrollToElement('#step-3-card');
+        wx.showToast({
+          title: '查询成功',
+          icon: 'success'
+        });
+
+        // 滚动到步骤3
+        this.scrollToElement('#step-3-card');
+      } else {
+        throw new Error(data.msg || '查询失败');
+      }
     } catch (error) {
       this.setData({
         isQuerying: false
       });
 
       wx.showToast({
-        title: '查询失败，请重试',
+        title: error.message || '查询失败，请重试',
         icon: 'none'
       });
 
@@ -635,10 +701,12 @@ Page({
       pictureList: [],
       queryResult: null,
       formData: {
+        typeCode: '1',
         sn: '',
         imei: '',
         imei2: ''
       },
+      selectedModelName: '苹果',
       isRecognizing: false,
       isQuerying: false
     });

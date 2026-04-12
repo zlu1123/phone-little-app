@@ -1,15 +1,17 @@
 {
   "pages": [
     "pages/imei-query/imei-query",
+    "pages/login/login",
     "pages/my/my",
-    "pages/webview/webview",
-    "pages/login/login"
+    "pages/history/history",
+    "pages/webview/webview"
   ],
   "window": {
     "navigationBarTextStyle": "black",
     "navigationStyle": "custom"
   },
   "tabBar": {
+    "custom": true,
     "color": "#7d7e80",
     "selectedColor": "#1989fa",
     "backgroundColor": "#ffffff",

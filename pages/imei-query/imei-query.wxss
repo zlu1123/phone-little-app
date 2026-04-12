@@ -1,229 +1,177 @@
-/* pages/imei-query/imei-query.wxss */
-/* 修复页面无法滚动的问题 */
-page {
-  height: auto !important;
-  overflow-y: auto !important;
-  display: block !important;
-}
+<!--pages/imei-query/imei-query.wxml-->
+<view class="imei-page">
+  <!-- 顶部导航栏 -->
+  <van-nav-bar
+    title="保修查询助手"
+    fixed="{{true}}"
+    placeholder="{{true}}"
+    z-index="{{100}}"
+  ></van-nav-bar>
 
-.imei-page {
-  min-height: 100vh;
-  background-color: #f7f8fa;
-  padding-bottom: 40rpx; /* 底部留白 */
-}
+  <!-- 步骤条 -->
+  <view class="steps-wrapper">
+    <van-steps steps="{{ steps }}" active="{{ activeStep }}" active-icon="success" active-color="#1989fa" />
+  </view>
 
-.steps-wrapper {
-  background-color: #fff;
-  padding: 10px 0;
-  margin-bottom: 15px;
-}
+  <view class="content-container">
+    <!-- 步骤1：上传区域 -->
+    <view class="card-section">
+      <view class="section-header">
+        <view class="title">1. 上传设备图片</view>
+        <view class="subtitle">请拍摄或上传包含序列号/IMEI的清晰图片</view>
+      </view>
 
-.content-container {
-  padding: 0 16px;
-}
+      <view class="upload-wrapper">
+        <van-uploader
+          bind:after-read="afterRead"
+          bind:delete="onDelete"
+          accept="image"
+          max-count="1"
+          file-list="{{ pictureList }}"
+          preview-full-image="{{true}}"
+          disabled="{{ isRecognizing || activeStep >= 1 }}"
+          deletable="{{ activeStep === 0 }}"
+          class="custom-uploader"
+          use-slot="{{ true }}"
+          image-fit="aspectFit"
+        >
+          <view class="upload-area">
+            <view class="upload-icon-wrapper">
+              <van-icon name="scan" size="48" color="#1989fa" />
+            </view>
+            <view class="upload-text">点击拍摄/上传图片</view>
+            <view class="upload-hint">自动识别 IMEI 和序列号</view>
+          </view>
+        </van-uploader>
+      </view>
 
-.card-section {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 12px rgba(100, 101, 102, 0.08);
-}
+      <!-- 识别加载中 -->
+      <view wx:if="{{ isRecognizing }}" class="loading-wrapper">
+        <van-loading type="spinner" color="#1989fa" size="24px">正在智能识别中...</van-loading>
+      </view>
+    </view>
 
-.section-header {
-  margin-bottom: 20px;
-  border-left: 8rpx solid #1989fa;
-  padding-left: 16rpx;
-}
+    <!-- 步骤2：识别结果编辑表单 -->
+    <view wx:if="{{ activeStep >= 1 }}" class="card-section">
+      <view class="section-header">
+        <view class="title">2. 确认设备信息</view>
+        <view class="subtitle">系统已自动识别，如有误请手动修改</view>
+      </view>
 
-.section-header .title {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #323233;
-  line-height: 1.2;
-}
+      <van-cell-group inset class="form-group">
+        <van-field
+          value="{{ selectedModelName }}"
+          label="手机型号"
+          placeholder="请选择手机型号"
+          readonly
+          is-link
+          bind:click-input="onShowModelPicker"
+        />
+        <van-field
+          value="{{ formData.sn }}"
+          label="序列号"
+          placeholder="请输入或识别序列号"
+          left-icon="qr"
+          clearable="{{true}}"
+          bind:change="onSnChange"
+        />
+        <van-field
+          value="{{ formData.imei }}"
+          label="IMEI"
+          placeholder="请输入或识别IMEI"
+          left-icon="scan"
+          clearable="{{true}}"
+          bind:change="onImeiChange"
+        />
+        <van-field
+          value="{{ formData.imei2 }}"
+          label="IMEI2"
+          placeholder="请输入或识别IMEI2"
+          left-icon="scan"
+          clearable="{{true}}"
+          bind:change="onImei2Change"
+        />
+      </van-cell-group>
 
-.section-header .subtitle {
-  font-size: 24rpx;
-  color: #969799;
-  margin-top: 8rpx;
-}
+      <view class="action-btn">
+        <van-button
+          round="{{true}}"
+          block="{{true}}"
+          type="primary"
+          bind:click="handleQuery"
+          loading="{{ isQuerying }}"
+          loading-text="查询中..."
+          color="linear-gradient(to right, #1989fa, #0570db)"
+        >
+          查询保修信息
+        </van-button>
+      </view>
+    </view>
 
-/* 上传组件样式优化 */
-.upload-wrapper {
-  margin: 30rpx 0;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
+    <!-- 步骤3：查询结果展示 -->
+    <view wx:if="{{ activeStep >= 2 && queryResult }}" class="card-section result-card">
+      <view class="section-header">
+        <view class="title">3. 查询结果</view>
+        <view class="subtitle">
+          <van-tag type="{{ queryResult.isExpired ? 'danger' : 'success' }}" size="medium">
+            {{ queryResult.warrantyStatus }}
+          </van-tag>
+        </view>
+      </view>
 
-.custom-uploader {
-  width: 100%;
-  display: block;
-}
+      <view class="result-content">
+        <view class="info-item">
+          <text class="label">设备名称</text>
+          <text class="value">{{ queryResult.productName }}</text>
+        </view>
+        <view class="info-item">
+          <text class="label">激活时间</text>
+          <text class="value">{{ queryResult.activationDate }}</text>
+        </view>
+        <view class="info-item" wx:if="{{ queryResult.coverageDate && queryResult.coverageDate !== '未知' }}">
+          <text class="label">保修截止</text>
+          <text class="value">{{ queryResult.coverageDate }}</text>
+        </view>
+        <view class="info-item">
+          <text class="label">保修状态</text>
+          <text class="value {{ queryResult.isExpired ? 'text-danger' : 'text-success' }}">
+            {{ queryResult.warrantyStatus }}
+          </text>
+        </view>
+      </view>
 
-.custom-uploader .van-uploader {
-  width: 100%;
-}
+      <!-- 跳转按钮 -->
+      <view class="action-btn">
+        <van-button
+          round="{{true}}"
+          block="{{true}}"
+          type="{{ queryResult.isExpired ? 'default' : 'success' }}"
+          disabled="{{ queryResult.isExpired }}"
+          bind:click="handleJumpToOfficialAccount"
+          icon="{{ queryResult.isExpired ? 'close' : 'wechat' }}"
+          class="mb-3"
+        >
+          {{ queryResult.isExpired ? '保修已过期' : '前往亚丁屏卫' }}
+        </van-button>
 
-.custom-uploader .van-uploader__wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
+        <van-button round="{{true}}" block="{{true}}" plain="{{true}}" type="primary" bind:click="handleReset" icon="replay">
+          重新查询
+        </van-button>
 
-.custom-uploader .van-uploader__input-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
+        <view wx:if="{{ queryResult.isExpired }}" class="tip-text">
+          <van-icon name="info-o"></van-icon> 设备已过保，无法享受相关服务
+        </view>
+      </view>
+    </view>
+  </view>
 
-.custom-uploader .van-uploader__upload {
-  width: 100%;
-  height: 400rpx;
-  background-color: #f7f8fa;
-  border: 1px dashed #dcdee0;
-  border-radius: 8px;
-  margin: 0;
-}
-
-.custom-uploader .van-uploader__preview-image {
-  width: 100%;
-  height: 400rpx;
-  border-radius: 8px;
-}
-
-.custom-uploader .van-uploader__preview {
-  width: 100%;
-  margin: 0;
-  display: flex;
-  justify-content: center;
-}
-
-/* 自定义上传区域样式 */
-.upload-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 400rpx;
-  background-color: #f2f9ff;
-  border: 2rpx dashed #1989fa;
-  border-radius: 24rpx;
-  transition: all 0.3s;
-  box-sizing: border-box;
-  padding: 40rpx;
-}
-
-.upload-area:active {
-  background-color: #e6f1fc;
-  border-color: #0570db;
-}
-
-.upload-icon-wrapper {
-  width: 120rpx;
-  height: 120rpx;
-  background-color: #e6f1fc;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 32rpx;
-}
-
-.upload-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #323233;
-  margin-bottom: 16rpx;
-}
-
-.upload-hint {
-  font-size: 26rpx;
-  color: #969799;
-}
-
-.loading-wrapper {
-  margin-top: 40rpx;
-  text-align: center;
-  padding: 40rpx;
-}
-
-/* 表单样式 */
-.form-group {
-  margin-bottom: 40rpx;
-}
-
-.action-btn {
-  margin-top: 48rpx;
-}
-
-.mb-3 {
-  margin-bottom: 24rpx;
-}
-
-/* 结果展示样式 */
-.result-content {
-  background-color: #f7f8fa;
-  border-radius: 16rpx;
-  padding: 32rpx;
-  margin-bottom: 40rpx;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24rpx 0;
-  border-bottom: 1rpx solid #ebedf0;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.info-item .label {
-  color: #646566;
-  font-size: 28rpx;
-}
-
-.info-item .value {
-  color: #323233;
-  font-weight: 500;
-  font-size: 30rpx;
-}
-
-.text-danger {
-  color: #ee0a24;
-}
-
-.text-success {
-  color: #07c160;
-}
-
-.tip-text {
-  font-size: 24rpx;
-  color: #969799;
-  margin-top: 24rpx;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 动画 */
-.card-section {
-  animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+  <!-- 手机型号选择器 -->
+  <van-action-sheet
+    show="{{ showModelPicker }}"
+    actions="{{ modelOptions }}"
+    bind:close="onCloseModelPicker"
+    bind:select="onSelectModel"
+    cancel-text="取消"
+    bind:cancel="onCloseModelPicker"
+  />
+</view>

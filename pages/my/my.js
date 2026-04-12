@@ -34,6 +34,10 @@ Page({
   },
 
   onShow() {
+    // 同步自定义 tabBar 选中状态
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ active: 1 });
+    }
     // 每次显示页面时检查登录状态
     this.checkLoginStatus();
   },

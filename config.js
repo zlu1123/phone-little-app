@@ -39,7 +39,11 @@ const API_ENDPOINTS = {
   // 后端 OCR 接口（图片识别）
   ocrImageCheck: '/image/ocr/imchect',
   // 登录接口
-  login: '/login'
+  login: '/login',
+  // 查询保修信息
+  queryActiveInfo: '/wechat/api/queryActiveInfo',
+  // 查询个人订单信息
+  queryOrderList: '/wechat/api/queryOrderList'
 };
 
 const joinUrl = (baseUrl, path) => {

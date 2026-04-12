@@ -60,6 +60,14 @@
 
       <van-cell-group inset class="form-group">
         <van-field
+          value="{{ selectedModelName }}"
+          label="手机型号"
+          placeholder="请选择手机型号"
+          readonly
+          is-link
+          bind:click-input="onShowModelPicker"
+        />
+        <van-field
           value="{{ formData.sn }}"
           label="序列号"
           placeholder="请输入或识别序列号"
@@ -120,6 +128,10 @@
           <text class="label">激活时间</text>
           <text class="value">{{ queryResult.activationDate }}</text>
         </view>
+        <view class="info-item" wx:if="{{ queryResult.coverageDate && queryResult.coverageDate !== '未知' }}">
+          <text class="label">保修截止</text>
+          <text class="value">{{ queryResult.coverageDate }}</text>
+        </view>
         <view class="info-item">
           <text class="label">保修状态</text>
           <text class="value {{ queryResult.isExpired ? 'text-danger' : 'text-success' }}">
@@ -152,4 +164,14 @@
       </view>
     </view>
   </view>
+
+  <!-- 手机型号选择器 -->
+  <van-action-sheet
+    show="{{ showModelPicker }}"
+    actions="{{ modelOptions }}"
+    bind:close="onCloseModelPicker"
+    bind:select="onSelectModel"
+    cancel-text="取消"
+    bind:cancel="onCloseModelPicker"
+  />
 </view>
