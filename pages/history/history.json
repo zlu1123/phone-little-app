@@ -9,6 +9,5 @@
     "van-nav-bar": "@vant/weapp/nav-bar/index"
   },
   "navigationBarTitleText": "查询记录",
-  "enablePullDownRefresh": true,
-  "onReachBottomDistance": 100
+  "enablePullDownRefresh": false
 }

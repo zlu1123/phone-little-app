@@ -3,6 +3,10 @@
   background-color: #f7f8fa;
 }
 
+.scroll-container {
+  height: calc(100vh - 46px);
+}
+
 .loading-container,
 .empty-container {
   display: flex;

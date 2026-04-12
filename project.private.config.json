@@ -20,7 +20,18 @@
     "skylineRenderEnable": true,
     "autoAudits": false,
     "urlCheck": false,
-    "compileHotReLoad": false
+    "compileHotReLoad": true,
+    "coverView": false,
+    "lazyloadPlaceholderEnable": false,
+    "preloadBackgroundData": false,
+    "useApiHook": true,
+    "showShadowRootInWxmlPanel": false,
+    "useStaticServer": false,
+    "useLanDebug": false,
+    "showES6CompileOption": false,
+    "checkInvalidKey": true,
+    "ignoreDevUnusedFiles": true,
+    "bigPackageSizeSupport": false
   },
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
@@ -28,7 +39,8 @@
     "ignore": [],
     "include": []
   },
-  "appid": "wxb9d47f1800720921",
+  "appid": "wx9831724ab5859cf0",
   "editorSetting": {},
-  "libVersion": "3.14.3"
+  "libVersion": "3.14.3",
+  "projectname": "phone-little-app"
 }

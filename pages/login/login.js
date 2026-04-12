@@ -9,7 +9,7 @@ Page({
     phone: '',
     password: '',
     agreed: true,
-    showPhoneForm: false,
+    showPhoneForm: true,
     isLoading: false,
     // 注册相关
     registerPhone: '',
@@ -80,9 +80,9 @@ Page({
               userInfo: userInfo
             },
             success: res => {
-              if (res.statusCode === 200 && res.data) {
-                // 假设后端返回了 token 和用户信息
-                const data = res.data;
+              const data = res.data || {};
+              if (res.statusCode === 200 && data.code === 200) {
+                // 后端返回成功
                 this.mockLogin({
                   type: 'wechat',
                   userInfo: data.userInfo || userInfo,
@@ -91,7 +91,7 @@ Page({
                 });
               } else {
                 wx.showToast({
-                  title: '登录失败，请重试',
+                  title: data.msg || '登录失败，请重试',
                   icon: 'none'
                 });
                 this.setData({ isLoading: false });
@@ -162,8 +162,9 @@ Page({
               type: 'phone'
             },
             success: res => {
-              if (res.statusCode === 200 && res.data) {
-                const data = res.data;
+              const data = res.data || {};
+              if (res.statusCode === 200 && data.code === 200) {
+                // 后端返回成功
                 this.mockLogin({
                   type: 'phone',
                   phone: data.phone,
@@ -172,7 +173,7 @@ Page({
                 });
               } else {
                 wx.showToast({
-                  title: '登录失败，请重试',
+                  title: data.msg || '登录失败，请重试',
                   icon: 'none'
                 });
                 this.setData({ isLoading: false });
@@ -259,8 +260,9 @@ Page({
         password
       },
       success: res => {
-        if (res.statusCode === 200 && res.data) {
-          const data = res.data;
+        const data = res.data || {};
+        if (res.statusCode === 200 && data.code === 200) {
+          // 后端返回成功
           this.mockLogin({
             type: 'password',
             phone: data.phone || phone,
@@ -268,7 +270,7 @@ Page({
           });
         } else {
           wx.showToast({
-            title: '登录失败，请检查账号密码',
+            title: data.msg || '登录失败，请检查账号密码',
             icon: 'none'
           });
           this.setData({ isLoading: false });

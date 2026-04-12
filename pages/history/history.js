@@ -4,6 +4,7 @@ Page({
   data: {
     orderList: [],
     isLoading: true,
+    isRefreshing: false,
     // 分页相关
     pageNum: 1,
     pageSize: 10,
@@ -19,15 +20,18 @@ Page({
     wx.navigateBack();
   },
 
-  // 下拉刷新
-  onPullDownRefresh() {
+  // scroll-view 下拉刷新
+  onRefresh() {
+    this.setData({ isRefreshing: true });
     this.fetchOrderList(true).then(() => {
-      wx.stopPullDownRefresh();
+      this.setData({ isRefreshing: false });
+    }).catch(() => {
+      this.setData({ isRefreshing: false });
     });
   },
 
-  // 上拉加载更多
-  onReachBottom() {
+  // scroll-view 触底加载更多
+  onScrollToLower() {
     if (this.data.finished || this.data.loadingMore) return;
     this.fetchOrderList(false);
   },
@@ -90,7 +94,8 @@ Page({
             pageSize: this.data.pageSize
           },
           header: {
-            Authorization: 'Bearer ' + wx.getStorageSync('token')
+            Authorization: 'Bearer ' + wx.getStorageSync('token'),
+            'x-app-wechat': 'true'
           },
           success: resolve,
           fail: reject

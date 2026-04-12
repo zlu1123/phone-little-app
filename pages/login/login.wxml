@@ -31,37 +31,9 @@
   </view>
   -->
 
-  <!-- 登录模式 -->
+  <!-- 手机号密码登录 -->
   <view class="login-section">
-    <!-- 微信一键登录 -->
-    <button
-      class="login-btn wechat-btn"
-      open-type="getUserInfo"
-      bindgetuserinfo="handleWechatLogin"
-    >
-      <van-icon name="wechat" size="20px" color="#fff" />
-      <text class="btn-text">微信一键登录</text>
-    </button>
-
-    <!-- 手机号登录 -->
-    <button
-      class="login-btn phone-btn"
-      open-type="getPhoneNumber"
-      bindgetphonenumber="handlePhoneLogin"
-    >
-      <van-icon name="phone-o" size="20px" color="#1989fa" />
-      <text class="btn-text">手机号快捷登录</text>
-    </button>
-
-    <!-- 分隔线 -->
-    <view class="divider">
-      <view class="line"></view>
-      <text class="divider-text">或</text>
-      <view class="line"></view>
-    </view>
-
-    <!-- 手动输入手机号密码登录 -->
-    <view class="phone-form" wx:if="{{ showPhoneForm }}">
+    <view class="phone-form">
       <van-field
         value="{{ phone }}"
         type="number"
@@ -98,91 +70,5 @@
         登录
       </van-button>
     </view>
-
-    <!-- 切换手动输入 -->
-    <view class="toggle-form" bindtap="togglePhoneForm">
-      <text>{{ showPhoneForm ? '收起手机号登录' : '使用手机号密码登录' }}</text>
-      <van-icon name="{{ showPhoneForm ? 'arrow-up' : 'arrow-down' }}" size="12px" />
-    </view>
-  </view>
-
-  <!-- 注册模式 (暂时隐藏) -->
-  <!--
-  <view class="login-section" wx:if="{{ mode === 'register' }}">
-    <button
-      class="login-btn phone-btn"
-      open-type="getPhoneNumber"
-      bindgetphonenumber="handleWechatPhoneRegister"
-    >
-      <van-icon name="wechat" size="20px" color="#1989fa" />
-      <text class="btn-text">微信手机号快捷注册</text>
-    </button>
-
-    <view class="divider">
-      <view class="line"></view>
-      <text class="divider-text">或</text>
-      <view class="line"></view>
-    </view>
-
-    <view class="phone-form">
-      <van-field
-        value="{{ registerPhone }}"
-        type="number"
-        maxlength="11"
-        placeholder="请输入手机号"
-        border="{{ false }}"
-        bind:change="handleRegisterPhoneChange"
-        class="input-field"
-      >
-        <van-icon slot="left-icon" name="phone-o" size="18px" color="#969799" custom-style="margin-right: 16rpx;" />
-      </van-field>
-
-      <van-field
-        value="{{ registerPassword }}"
-        type="password"
-        maxlength="20"
-        placeholder="请输入密码（6-20位）"
-        border="{{ false }}"
-        bind:change="handleRegisterPasswordChange"
-        class="input-field"
-      >
-        <van-icon slot="left-icon" name="lock" size="18px" color="#969799" custom-style="margin-right: 16rpx;" />
-      </van-field>
-
-      <van-field
-        value="{{ confirmPassword }}"
-        type="password"
-        maxlength="20"
-        placeholder="请确认密码"
-        border="{{ false }}"
-        bind:change="handleConfirmPasswordChange"
-        class="input-field"
-      >
-        <van-icon slot="left-icon" name="lock" size="18px" color="#969799" custom-style="margin-right: 16rpx;" />
-      </van-field>
-
-      <van-button
-        type="primary"
-        block
-        round
-        loading="{{ isLoading }}"
-        disabled="{{ !registerPhone || !registerPassword || !confirmPassword }}"
-        bind:click="handleRegister"
-        class="submit-btn"
-      >
-        注册
-      </van-button>
-    </view>
-
-    <view class="toggle-form" bindtap="handleSwitchMode" data-mode="login">
-      <text>已有账号？去登录</text>
-      <van-icon name="arrow" size="12px" />
-    </view>
-  </view>
-  -->
-
-  <!-- 游客模式 -->
-  <view class="guest-entry" bindtap="handleGuestLogin">
-    <text>暂不登录，先逛逛</text>
   </view>
 </view>

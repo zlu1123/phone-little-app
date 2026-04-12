@@ -334,6 +334,9 @@ Page({
           url: buildApiUrl(API_ENDPOINTS.ocrImageCheck),
           filePath: localFilePath,
           name: 'file',
+          header: {
+            'x-app-wechat': 'true'
+          },
           success: res => {
             console.log('后端OCR接口返回:', res);
             if (res.statusCode === 200) {
@@ -594,7 +597,8 @@ Page({
             code: queryKey
           },
           header: {
-            Authorization: 'Bearer ' + wx.getStorageSync('token')
+            Authorization: 'Bearer ' + wx.getStorageSync('token'),
+            'x-app-wechat': 'true'
           },
           success: resolve,
           fail: reject

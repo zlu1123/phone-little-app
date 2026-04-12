@@ -62,6 +62,7 @@
         <van-field
           value="{{ selectedModelName }}"
           label="手机型号"
+          title-width="5em"
           placeholder="请选择手机型号"
           readonly
           is-link
@@ -70,6 +71,7 @@
         <van-field
           value="{{ formData.sn }}"
           label="序列号"
+          title-width="5em"
           placeholder="请输入或识别序列号"
           left-icon="qr"
           clearable="{{true}}"
@@ -78,6 +80,7 @@
         <van-field
           value="{{ formData.imei }}"
           label="IMEI"
+          title-width="5em"
           placeholder="请输入或识别IMEI"
           left-icon="scan"
           clearable="{{true}}"
@@ -86,6 +89,7 @@
         <van-field
           value="{{ formData.imei2 }}"
           label="IMEI2"
+          title-width="5em"
           placeholder="请输入或识别IMEI2"
           left-icon="scan"
           clearable="{{true}}"
@@ -149,7 +153,7 @@
           disabled="{{ queryResult.isExpired }}"
           bind:click="handleJumpToOfficialAccount"
           icon="{{ queryResult.isExpired ? 'close' : 'wechat' }}"
-          class="mb-3"
+          custom-class="mb-3"
         >
           {{ queryResult.isExpired ? '保修已过期' : '前往亚丁屏卫' }}
         </van-button>
