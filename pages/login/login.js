@@ -1,5 +1,6 @@
 const app = getApp();
 const { API_ENDPOINTS, buildApiUrl } = require('../../config');
+const { request } = require('../../utils/request');
 
 Page({
   data: {
@@ -68,7 +69,7 @@ Page({
       success: loginRes => {
         if (loginRes.code) {
           // 调用后端接口，传递 code 和 userInfo 进行登录
-          wx.request({
+          request({
             url: buildApiUrl(API_ENDPOINTS.login),
             method: 'POST',
             header: {
@@ -148,7 +149,7 @@ Page({
       success: loginRes => {
         if (loginRes.code) {
           // 调用后端接口，传递 code 和 encryptedData/iv 解密手机号
-          wx.request({
+          request({
             url: buildApiUrl(API_ENDPOINTS.login),
             method: 'POST',
             header: {
@@ -248,7 +249,7 @@ Page({
     this.setData({ isLoading: true });
 
     // 调用后端接口验证登录
-    wx.request({
+    request({
       url: buildApiUrl(API_ENDPOINTS.login),
       method: 'POST',
       header: {
@@ -265,8 +266,13 @@ Page({
           // 后端返回成功
           this.mockLogin({
             type: 'password',
-            phone: data.phone || phone,
-            token: data.token
+            phone: data.phonenumber || phone,
+            token: data.token,
+            nickName: data.nickName,
+            avatar: data.avatar,
+            userName: data.userName,
+            userId: data.userId,
+            roles: data.roles
           });
         } else {
           wx.showToast({
@@ -453,49 +459,49 @@ Page({
     }, 1000);
   },
 
-  // 模拟登录（实际开发中替换为真实接口）
+  // 登录成功后存储用户信息
   mockLogin(params) {
     console.log('登录参数:', params);
 
-    // 模拟网络请求延迟
+    // 构建用户信息对象，存储接口返回的所有字段
+    const userInfo = {
+      nickName: params.nickName || params.userInfo?.nickName || '微信用户',
+      avatarUrl: params.avatar || params.userInfo?.avatarUrl || '',
+      phone: params.phone || '',
+      userName: params.userName || '',
+      userId: params.userId || '',
+      roles: params.roles || []
+    };
+
+    // 存储登录状态和用户信息
+    wx.setStorageSync('isLoggedIn', true);
+    wx.setStorageSync('isGuest', false);
+    wx.setStorageSync('userInfo', userInfo);
+
+    // 缓存 token 和过期时间（24 小时后过期）
+    const token = params.token || '';
+    const expireTime = Date.now() + 24 * 60 * 60 * 1000;
+    wx.setStorageSync('token', token);
+    wx.setStorageSync('tokenExpireTime', expireTime);
+
+    this.setData({ isLoading: false });
+
+    wx.showToast({
+      title: '登录成功',
+      icon: 'success'
+    });
+
+    // 跳转回上一页或首页
     setTimeout(() => {
-      // 模拟登录成功
-      const mockUserInfo = {
-        nickName: params.userInfo?.nickName || '微信用户',
-        avatarUrl: params.userInfo?.avatarUrl || '',
-        phone: params.phone || '138****8888'
-      };
-
-      // 存储登录状态和用户信息
-      wx.setStorageSync('isLoggedIn', true);
-      wx.setStorageSync('isGuest', false);
-      wx.setStorageSync('userInfo', mockUserInfo);
-
-      // 缓存 token 和过期时间（模拟 24 小时后过期）
-      const token = params.token || 'mock_token_' + Date.now();
-      const expireTime = Date.now() + 24 * 60 * 60 * 1000;
-      wx.setStorageSync('token', token);
-      wx.setStorageSync('tokenExpireTime', expireTime);
-
-      this.setData({ isLoading: false });
-
-      wx.showToast({
-        title: '登录成功',
-        icon: 'success'
-      });
-
-      // 跳转回上一页或首页
-      setTimeout(() => {
-        const pages = getCurrentPages();
-        if (pages.length > 1) {
-          wx.navigateBack();
-        } else {
-          wx.switchTab({
-            url: '/pages/my/my'
-          });
-        }
-      }, 1000);
-    }, 1500);
+      const pages = getCurrentPages();
+      if (pages.length > 1) {
+        wx.navigateBack();
+      } else {
+        wx.switchTab({
+          url: '/pages/my/my'
+        });
+      }
+    }, 1000);
   },
 
   // 模拟注册（实际开发中替换为真实接口）

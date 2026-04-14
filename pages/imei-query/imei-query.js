@@ -4,6 +4,7 @@ const {
   buildApiUrl,
   isWechatOcrEnabled
 } = require('../../config');
+const { request, uploadFile } = require('../../utils/request');
 
 Page({
   data: {
@@ -82,10 +83,34 @@ Page({
     }
   },
 
+  // 删除图片回调
+  onDelete() {
+    this.setData({
+      pictureList: [],
+      activeStep: 0,
+      queryResult: null,
+      formData: {
+        typeCode: this.data.formData.typeCode || '1',
+        sn: '',
+        imei: '',
+        imei2: ''
+      }
+    });
+  },
+
   // 上传图片后回调
   afterRead(e) {
     const { file } = e.detail;
     const pictureList = this.data.pictureList;
+
+    // 校验是否已选择手机型号
+    if (!this.data.formData.typeCode) {
+      wx.showToast({
+        title: '请先选择手机型号',
+        icon: 'none'
+      });
+      return;
+    }
 
     // 限制只能上传一张图片
     if (pictureList.length >= 1) {
@@ -330,12 +355,15 @@ Page({
         : originalFilePath;
 
       return new Promise(resolve => {
-        wx.uploadFile({
+        uploadFile({
           url: buildApiUrl(API_ENDPOINTS.ocrImageCheck),
           filePath: localFilePath,
           name: 'file',
+          formData: {
+            typeCode: this.data.formData.typeCode || '1'
+          },
           header: {
-            'x-app-wechat': 'true'
+            'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
           },
           success: res => {
             console.log('后端OCR接口返回:', res);
@@ -572,10 +600,7 @@ Page({
   async handleQuery() {
     const { sn, imei, typeCode } = this.data.formData;
 
-    // 优先使用序列号，其次使用IMEI
-    const queryKey = sn || imei;
-
-    if (!queryKey) {
+    if (!sn && !imei) {
       wx.showToast({
         title: '请输入序列号或IMEI',
         icon: 'none'
@@ -588,21 +613,21 @@ Page({
     });
 
     try {
-      const res = await new Promise((resolve, reject) => {
-        wx.request({
-          url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
-          method: 'GET',
-          data: {
-            typeCode: typeCode,
-            code: queryKey
-          },
-          header: {
-            Authorization: 'Bearer ' + wx.getStorageSync('token'),
-            'x-app-wechat': 'true'
-          },
-          success: resolve,
-          fail: reject
-        });
+      // 构建查询参数：code 必传，优先使用 SN，其次使用 IMEI
+      const queryData = {
+        typeCode,
+        code: sn || imei
+      };
+      if (imei) queryData.imei = imei;
+
+      const res = await request({
+        url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
+        method: 'GET',
+        data: queryData,
+        header: {
+          Authorization: 'Bearer ' + wx.getStorageSync('token'),
+          'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
+        }
       });
 
       const data = res.data;
@@ -681,23 +706,30 @@ Page({
       return;
     }
 
-    // 小程序无法直接跳转公众号主页链接
-    // 方案：复制公众号名称并提示用户搜索
-    wx.setClipboardData({
-      data: '亚丁屏卫',
-      success: () => {
-        wx.hideToast(); // 隐藏复制成功的默认提示
-        wx.showModal({
-          title: '即将前往微信搜索',
-          content:
-            '由于小程序限制，无法直接跳转。已为您复制公众号名称“亚丁屏卫”，请在微信首页搜索框粘贴并关注。',
-          confirmText: '我知道了',
-          showCancel: false
+    // 使用公众号 biz key 跳转到亚丁屏卫公众号主页
+    const bizKey = 'MzI3MTI3MjI5MA==';
+    const profileUrl = `https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=${bizKey}#wechat_redirect`;
+
+    wx.navigateTo({
+      url: `/pages/webview/webview?url=${encodeURIComponent(profileUrl)}`,
+      fail: () => {
+        // 如果 webview 页面不存在，降级为复制公众号名称
+        wx.setClipboardData({
+          data: '亚丁屏卫',
+          success: () => {
+            wx.hideToast();
+            wx.showModal({
+              title: '即将前往微信搜索',
+              content:
+                '已为您复制公众号名称"亚丁屏卫"，请在微信首页搜索框粘贴并关注。',
+              confirmText: '我知道了',
+              showCancel: false
+            });
+          }
         });
       }
     });
   },
-
   // 重置查询
   handleReset() {
     this.setData({
@@ -724,16 +756,22 @@ Page({
 
   // 滚动到指定元素
   scrollToElement(selector) {
-    wx.createSelectorQuery()
-      .select(selector)
-      .boundingClientRect(rect => {
-        if (rect) {
+    // 延时等待 wx:if 条件渲染完成后再获取元素位置
+    setTimeout(() => {
+      const query = wx.createSelectorQuery();
+      query.select(selector).boundingClientRect();
+      query.selectViewport().scrollOffset();
+      query.exec(res => {
+        const rect = res[0];
+        const scrollInfo = res[1];
+        if (rect && scrollInfo) {
+          // rect.top 是相对视口的位置，加上当前滚动偏移得到绝对位置
           wx.pageScrollTo({
-            scrollTop: rect.top - 100,
+            scrollTop: scrollInfo.scrollTop + rect.top - 20,
             duration: 300
           });
         }
-      })
-      .exec();
+      });
+    }, 300);
   }
 });

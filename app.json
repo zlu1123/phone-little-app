@@ -3,6 +3,7 @@
     "pages/imei-query/imei-query",
     "pages/login/login",
     "pages/my/my",
+    "pages/profile/profile",
     "pages/history/history",
     "pages/webview/webview"
   ],

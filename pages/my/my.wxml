@@ -12,6 +12,7 @@
     </view>
     <view class="user-info">
       <text class="nickname">{{ isLoggedIn ? userInfo.nickName : (isGuest ? '游客用户' : '点击登录') }}</text>
+      <text wx:if="{{ isLoggedIn && userInfo.phone }}" class="user-phone">手机号：{{ userInfo.phone }}</text>
       <text class="desc">{{ isLoggedIn ? '欢迎回来' : (isGuest ? '登录后享受更多服务' : '登录后查看更多信息') }}</text>
     </view>
     <view class="arrow">

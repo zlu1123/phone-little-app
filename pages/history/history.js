@@ -1,4 +1,5 @@
 const { API_ENDPOINTS, buildApiUrl } = require('../../config');
+const { request } = require('../../utils/request');
 
 Page({
   data: {
@@ -85,21 +86,17 @@ Page({
     const currentPage = isRefresh ? 1 : this.data.pageNum;
 
     try {
-      const res = await new Promise((resolve, reject) => {
-        wx.request({
-          url: buildApiUrl(API_ENDPOINTS.queryOrderList),
-          method: 'GET',
-          data: {
-            pageNum: currentPage,
-            pageSize: this.data.pageSize
-          },
-          header: {
-            Authorization: 'Bearer ' + wx.getStorageSync('token'),
-            'x-app-wechat': 'true'
-          },
-          success: resolve,
-          fail: reject
-        });
+      const res = await request({
+        url: buildApiUrl(API_ENDPOINTS.queryOrderList),
+        method: 'GET',
+        data: {
+          pageNum: currentPage,
+          pageSize: this.data.pageSize
+        },
+        header: {
+          Authorization: 'Bearer ' + wx.getStorageSync('token'),
+          'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
+        }
       });
 
       const data = res.data;

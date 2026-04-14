@@ -2,7 +2,11 @@ Page({
   data: {
     userInfo: {
       nickName: '微信用户',
-      avatarUrl: ''
+      avatarUrl: '',
+      phone: '',
+      userName: '',
+      userId: '',
+      roles: []
     },
     statusBarHeight: 0,
     navBarHeight: 44,
@@ -50,7 +54,11 @@ Page({
     const tokenExpireTime = wx.getStorageSync('tokenExpireTime');
     const userInfo = wx.getStorageSync('userInfo') || {
       nickName: '微信用户',
-      avatarUrl: ''
+      avatarUrl: '',
+      phone: '',
+      userName: '',
+      userId: '',
+      roles: []
     };
 
     const now = Date.now();
@@ -72,7 +80,7 @@ Page({
       userInfo:
         isValidLogin || isGuest
           ? userInfo
-          : { nickName: '微信用户', avatarUrl: '' }
+          : { nickName: '微信用户', avatarUrl: '', phone: '', userName: '', userId: '', roles: [] }
     });
 
     // 如果未登录且不是游客模式，跳转到登录页
@@ -91,10 +99,9 @@ Page({
 
   handleUserInfo() {
     if (this.data.isLoggedIn) {
-      // 已登录，可以编辑用户信息或其他操作
-      wx.showToast({
-        title: '功能开发中',
-        icon: 'none'
+      // 已登录，跳转到个人信息页面
+      wx.navigateTo({
+        url: '/pages/profile/profile'
       });
     } else {
       // 未登录，跳转到登录页

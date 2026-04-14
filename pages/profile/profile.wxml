@@ -1,0 +1,36 @@
+<view class="profile-page">
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{ statusBarHeight }}px;">
+    <view class="nav-bar-inner">
+      <view class="nav-back" bindtap="handleBack">
+        <van-icon name="arrow-left" size="20px" color="#fff" />
+      </view>
+      <text class="nav-title">个人信息</text>
+      <view class="nav-placeholder"></view>
+    </view>
+  </view>
+
+  <!-- 头部用户信息 -->
+  <view class="profile-header" style="padding-top: {{ statusBarHeight + 44 + 20 }}px;">
+    <view class="avatar-container">
+      <image
+        wx:if="{{ userInfo.avatarUrl }}"
+        src="{{ userInfo.avatarUrl }}"
+        class="avatar-img"
+        mode="aspectFill"
+      />
+      <van-icon wx:else name="manager" size="50px" color="#fff" />
+    </view>
+    <text class="profile-nickname">{{ userInfo.nickName }}</text>
+    <text class="profile-desc">欢迎回来</text>
+  </view>
+
+  <!-- 用户详细信息卡片 -->
+  <view class="detail-card">
+    <van-cell-group inset>
+      <van-cell title="账号" value="{{ userInfo.userName }}" icon="phone-o" />
+      <van-cell title="手机号" value="{{ userInfo.phone || '未绑定' }}" icon="phone-circle-o" />
+      <van-cell title="角色" value="{{ roleDisplay }}" icon="shield-o" />
+    </van-cell-group>
+  </view>
+</view>

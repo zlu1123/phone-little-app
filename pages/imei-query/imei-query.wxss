@@ -90,6 +90,15 @@ page {
   background: rgba(0, 0, 0, 0.75);
 }
 
+/* ========== 手机型号选择（步骤1） ========== */
+.model-select-wrapper {
+  margin-bottom: 24rpx;
+}
+
+.model-select-group {
+  margin: 0 !important;
+}
+
 /* ========== 上传组件样式 ========== */
 .upload-wrapper {
   margin: 20rpx 0;
@@ -215,14 +224,19 @@ page {
   color: #1a1a1a;
   font-weight: 500;
   font-size: 30rpx;
+  line-height: 1.4;
 }
 
 .text-danger {
   color: #ee0a24;
+  font-size: 30rpx;
+  line-height: 1.4;
 }
 
 .text-success {
   color: #07c160;
+  font-size: 30rpx;
+  line-height: 1.4;
 }
 
 .tip-text {
