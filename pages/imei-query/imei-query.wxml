@@ -161,7 +161,8 @@
           disabled="{{ queryResult.isExpired }}"
           bind:click="handleJumpToOfficialAccount"
           icon="{{ queryResult.isExpired ? 'close' : 'wechat' }}"
-          custom-class="mb-3"
+          custom-class="mb-3 jump-btn"
+          color="{{ queryResult.isExpired ? '' : 'linear-gradient(to right, #07c160, #06ad56)' }}"
         >
           {{ queryResult.isExpired ? '保修已过期' : '前往亚丁屏卫' }}
         </van-button>

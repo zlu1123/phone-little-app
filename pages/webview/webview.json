@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "公众号"
+  "navigationBarTitleText": "公众号",
+  "navigationStyle": "default",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
 }
