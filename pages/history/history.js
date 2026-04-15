@@ -41,6 +41,8 @@ Page({
   formatOrderItem(item) {
     let isExpired = false;
     let warrantyStatus = '未知';
+    // 通过 sysTime 和 coverage 对比，判断操作时手机是否已激活
+    let activatedAtQuery = false;
 
     if (item.activated) {
       if (item.coverage) {
@@ -52,18 +54,39 @@ Page({
         // 如果质保时间晚于系统时间，则未过保
         isExpired = coverageTime <= sysTime;
         warrantyStatus = isExpired ? '已过保' : '保修中';
+        // 操作时手机已激活（有 coverage 说明已激活）
+        activatedAtQuery = true;
       } else {
+        // 有 activated 但无 coverage，根据 sysTime 判断
         warrantyStatus = '已激活';
+        activatedAtQuery = true;
       }
     } else {
-      warrantyStatus = '未激活';
-      isExpired = true;
+      // 未激活：通过 sysTime 和 coverage 对比确认
+      if (item.sysTime && item.coverage) {
+        const coverageTime = new Date(item.coverage).getTime();
+        const sysTime = new Date(item.sysTime).getTime();
+        // 即使 activated 为 false，如果 sysTime 在 coverage 之前，说明当时可能已激活
+        activatedAtQuery = sysTime <= coverageTime;
+        if (activatedAtQuery) {
+          warrantyStatus = '保修中';
+          isExpired = false;
+        } else {
+          warrantyStatus = '已过保';
+          isExpired = true;
+        }
+      } else {
+        warrantyStatus = '未激活';
+        isExpired = true;
+        activatedAtQuery = false;
+      }
     }
 
     return {
       ...item,
       isExpired,
-      warrantyStatus
+      warrantyStatus,
+      activatedAtQuery
     };
   },
 

@@ -29,9 +29,14 @@
       <view class="order-item" wx:for="{{ orderList }}" wx:key="id">
         <view class="order-header">
           <text class="order-time">{{ item.createTime }}</text>
-          <van-tag type="{{ item.activated ? (item.isExpired ? 'danger' : 'success') : 'warning' }}">
-            {{ item.warrantyStatus }}
-          </van-tag>
+          <view class="tag-group">
+            <van-tag type="{{ item.activatedAtQuery ? 'success' : 'warning' }}" size="medium">
+              {{ item.activatedAtQuery ? '已激活' : '未激活' }}
+            </van-tag>
+            <van-tag wx:if="{{ item.activatedAtQuery }}" type="{{ item.isExpired ? 'danger' : 'primary' }}" size="medium">
+              {{ item.warrantyStatus }}
+            </van-tag>
+          </view>
         </view>
 
         <view class="order-content">
@@ -51,11 +56,11 @@
             <text class="label">IMEI2：</text>
             <text class="value">{{ item.imei2 }}</text>
           </view>
-          <view class="info-row" wx:if="{{ item.activated }}">
+          <view class="info-row" wx:if="{{ item.activatedAtQuery }}">
             <text class="label">激活时间：</text>
             <text class="value">{{ item.activateDate || '未知' }}</text>
           </view>
-          <view class="info-row" wx:if="{{ item.activated && item.coverage }}">
+          <view class="info-row" wx:if="{{ item.activatedAtQuery && item.coverage }}">
             <text class="label">保修截止：</text>
             <text class="value">{{ item.coverage }}</text>
           </view>
