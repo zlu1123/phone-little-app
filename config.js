@@ -43,7 +43,9 @@ const API_ENDPOINTS = {
   // 查询保修信息
   queryActiveInfo: '/wechat/api/queryActiveInfo',
   // 查询个人订单信息
-  queryOrderList: '/wechat/api/queryOrderList'
+  queryOrderList: '/wechat/api/queryOrderList',
+  // 查询手机型号列表
+  queryPhoneTypeList: '/06/api/queryPhoneTypeList'
 };
 
 const joinUrl = (baseUrl, path) => {

@@ -28,12 +28,8 @@ Page({
 
     // 手机型号选择
     showModelPicker: false,
-    selectedModelName: '苹果',
-    modelOptions: [
-      { name: '苹果', value: '1' },
-      { name: '小米/红米', value: '2' },
-      { name: '华为/荣耀', value: '3' }
-    ]
+    selectedModelName: '',
+    modelOptions: []
   },
 
   onShow() {
@@ -42,6 +38,62 @@ Page({
       this.getTabBar().setData({ active: 0 });
     }
     this.checkLoginStatus();
+    // 获取手机型号列表
+    this.fetchPhoneTypeList();
+  },
+
+  // 从接口获取手机型号列表
+  async fetchPhoneTypeList() {
+    // 如果已经加载过，不重复请求
+    if (this.data.modelOptions.length > 0) return;
+
+    try {
+      const res = await request({
+        url: buildApiUrl(API_ENDPOINTS.queryPhoneTypeList),
+        method: 'GET',
+        header: {
+          Authorization: 'Bearer ' + wx.getStorageSync('token'),
+          'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
+        }
+      });
+
+      const data = res.data;
+      if (data.code === 200 && Array.isArray(data.data) && data.data.length > 0) {
+        const modelOptions = data.data.map(item => ({
+          name: item.name,
+          value: item.code
+        }));
+
+        // 默认选中第一个
+        this.setData({
+          modelOptions,
+          selectedModelName: modelOptions[0].name,
+          'formData.typeCode': modelOptions[0].value
+        });
+      } else {
+        console.warn('获取手机型号列表失败:', data.msg);
+        // 接口失败时使用兜底数据
+        this.setFallbackModelOptions();
+      }
+    } catch (error) {
+      console.error('获取手机型号列表异常:', error);
+      // 网络异常时使用兜底数据
+      this.setFallbackModelOptions();
+    }
+  },
+
+  // 兜底手机型号数据
+  setFallbackModelOptions() {
+    const fallbackOptions = [
+      { name: '苹果', value: '1' },
+      { name: '小米/红米', value: '2' },
+      { name: '华为/荣耀', value: '3' }
+    ];
+    this.setData({
+      modelOptions: fallbackOptions,
+      selectedModelName: fallbackOptions[0].name,
+      'formData.typeCode': fallbackOptions[0].value
+    });
   },
 
   // 检查登录状态
@@ -608,29 +660,60 @@ Page({
       return;
     }
 
+    // 获取图片路径（imageUrl），用于上传 img 字段
+    const imageUrl = this.data.pictureList.length > 0
+      ? (this.data.pictureList[0].path || this.data.pictureList[0].url)
+      : '';
+
     this.setData({
       isQuerying: true
     });
 
     try {
-      // 构建查询参数：code 必传，优先使用 SN，其次使用 IMEI
-      const queryData = {
+      // 构建 formData 参数：code 必传，优先使用 SN，其次使用 IMEI
+      const formData = {
         typeCode,
         code: sn || imei
       };
-      if (imei) queryData.imei = imei;
+      if (imei) formData.imei = imei;
 
-      const res = await request({
-        url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
-        method: 'GET',
-        data: queryData,
-        header: {
-          Authorization: 'Bearer ' + wx.getStorageSync('token'),
-          'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
-        }
-      });
+      let data;
 
-      const data = res.data;
+      if (imageUrl) {
+        // 有图片时：使用 uploadFile 发送 POST multipart/form-data，图片字段为 img
+        // wx.uploadFile 需要本地文件路径，如果是网络图先下载
+        const localFilePath = /^https?:\/\//i.test(imageUrl)
+          ? await this.downloadImageToTempFile(imageUrl)
+          : imageUrl;
+
+        const res = await uploadFile({
+          url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
+          filePath: localFilePath,
+          name: 'img',
+          formData,
+          header: {
+            Authorization: 'Bearer ' + wx.getStorageSync('token'),
+            'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
+          }
+        });
+
+        // uploadFile 返回的 data 是字符串，需要解析
+        data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+      } else {
+        // 无图片时：使用普通 POST 请求，Content-Type 为 multipart/form-data 无法不带文件
+        // 降级为普通 POST 请求
+        const res = await request({
+          url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
+          method: 'POST',
+          data: formData,
+          header: {
+            Authorization: 'Bearer ' + wx.getStorageSync('token'),
+            'x-app-wechat': '5c89231b711447acbf995c28c435dc39',
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        data = res.data;
+      }
 
       if (data.code === 200 && data.data) {
         const resultData = data.data;
@@ -642,9 +725,10 @@ Page({
           if (coverageDate) {
             const coverageTime = new Date(coverageDate).getTime();
             // 使用系统返回的时间或者当前时间
-            const sysTime = resultData.systemTime
-              ? new Date(resultData.systemTime).getTime()
+            const sysTime = resultData.sysTime
+              ? new Date(resultData.sysTime).getTime()
               : new Date().getTime();
+            console.log("🚀 ~ sysTime:", sysTime)
             // 如果质保时间晚于系统时间，则未过保，可以跳转亚丁屏卫
             isExpired = coverageTime <= sysTime;
             warrantyStatus = isExpired ? '已过保' : '保修中';
@@ -732,17 +816,19 @@ Page({
   },
   // 重置查询
   handleReset() {
+    // 重置时保留当前型号列表，默认选中第一个
+    const firstModel = this.data.modelOptions[0] || { name: '', value: '' };
     this.setData({
       activeStep: 0,
       pictureList: [],
       queryResult: null,
       formData: {
-        typeCode: '1',
+        typeCode: firstModel.value,
         sn: '',
         imei: '',
         imei2: ''
       },
-      selectedModelName: '苹果',
+      selectedModelName: firstModel.name,
       isRecognizing: false,
       isQuerying: false
     });
