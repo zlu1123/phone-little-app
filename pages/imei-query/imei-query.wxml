@@ -87,9 +87,9 @@
         />
         <van-field
           value="{{ formData.imei }}"
-          label="IMEI"
+          label="IMEI1"
           title-width="5em"
-          placeholder="请输入或识别IMEI"
+          placeholder="请输入或识别IMEI1"
           left-icon="scan"
           clearable="{{true}}"
           bind:change="onImeiChange"

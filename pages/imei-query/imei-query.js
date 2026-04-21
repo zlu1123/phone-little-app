@@ -545,24 +545,27 @@ Page({
 
     // 正则表达式优化
     // 1. 带标签的序列号：支持 SN, S/N, Serial, Serial No, Serial Number, 序列号 等前缀
+    //    注意：排除 PESN/MEID 等非 SN 标签，SN 值长度放宽到 8-20 位
     const snLabelRegex =
-      /(?:SN|S\/N|Serial(?:\s+(?:No\.?|Number))?|序列号)[\s:：]*([A-Z0-9]{8,15})/i;
+      /(?:^|[^A-Z])(?:SN|S\/N|Serial(?:\s+(?:No\.?|Number))?|序列号)[\s:：]*([A-Z0-9]{8,20})/i;
 
-    // 2. 纯序列号：8-15位大写字母和数字组合，排除纯数字
-    const snPureRegex = /\b([A-Z0-9]{8,15})\b/;
+    // 2. 纯序列号：8-20位大写字母和数字组合，排除纯数字
+    const snPureRegex = /\b([A-Z0-9]{8,20})\b/;
 
-    // 3. 带标签的 IMEI
-    const imeiLabelRegex = /IMEI(?:2)?[\s:：]*(\d{15})/i;
+    // 3. 带标签的 IMEI（支持 IMEI、IMEI1、IMEI2）
+    const imei1LabelRegex = /IMEI(?:1)?[\s:：]*(\d{15})/i;
+    const imei2LabelRegex = /IMEI2[\s:：]*(\d{15})/i;
 
     // 4. 纯 IMEI：15位数字
     const imeiPureRegex = /\b(\d{15})\b/;
 
-    // 临时存储找到的 IMEI
-    const foundImeis = new Set();
+    // 分别存储 IMEI1 和 IMEI2
+    let foundImei1 = '';
+    let foundImei2 = '';
     let foundSn = false;
 
     lines.forEach(line => {
-      // 优先匹配带标签的序列号
+      // 优先匹配带标签的序列号（排除 PESN、MEID 等干扰项）
       if (!formData.sn) {
         const snLabelMatch = line.match(snLabelRegex);
         if (snLabelMatch) {
@@ -571,39 +574,57 @@ Page({
         }
       }
 
-      // 优先匹配带标签的 IMEI
-      const imeiLabelMatch = line.match(imeiLabelRegex);
-      if (imeiLabelMatch) {
-        foundImeis.add(imeiLabelMatch[1]);
+      // 优先匹配带标签的 IMEI2（先匹配 IMEI2，避免被 IMEI1 正则误匹配）
+      if (!foundImei2) {
+        const imei2Match = line.match(imei2LabelRegex);
+        if (imei2Match) {
+          foundImei2 = imei2Match[1];
+          return; // 已匹配 IMEI2，跳过本行
+        }
+      }
+
+      // 匹配 IMEI 或 IMEI1
+      if (!foundImei1) {
+        const imei1Match = line.match(imei1LabelRegex);
+        if (imei1Match) {
+          foundImei1 = imei1Match[1];
+        }
       }
     });
 
     // 如果没有找到带标签的 IMEI，尝试匹配纯数字 IMEI
-    if (foundImeis.size === 0) {
+    if (!foundImei1 && !foundImei2) {
+      const pureImeis = [];
       lines.forEach(line => {
         const imeiMatch = line.match(imeiPureRegex);
-        if (imeiMatch) {
-          foundImeis.add(imeiMatch[1]);
+        if (imeiMatch && !pureImeis.includes(imeiMatch[1])) {
+          pureImeis.push(imeiMatch[1]);
         }
       });
+      if (pureImeis.length > 0) foundImei1 = pureImeis[0];
+      if (pureImeis.length > 1) foundImei2 = pureImeis[1];
     }
 
     // 如果没有找到带标签的序列号，再尝试匹配纯序列号
     if (!foundSn && !formData.sn) {
       for (const line of lines) {
         const snMatch = line.match(snPureRegex);
-        // 确保不是纯数字，且不是IMEI（15位数字）
-        if (snMatch && !/^\d+$/.test(snMatch[1])) {
+        // 确保不是纯数字，且不是IMEI（15位数字），且不是已识别的 IMEI 值
+        if (
+          snMatch &&
+          !/^\d+$/.test(snMatch[1]) &&
+          snMatch[1] !== foundImei1 &&
+          snMatch[1] !== foundImei2
+        ) {
           formData.sn = snMatch[1];
           break; // 找到一个疑似序列号就停止
         }
       }
     }
 
-    // 填充IMEI
-    const imeiArray = Array.from(foundImeis);
-    if (imeiArray.length > 0) formData.imei = imeiArray[0];
-    if (imeiArray.length > 1) formData.imei2 = imeiArray[1];
+    // 填充 IMEI
+    if (foundImei1) formData.imei = foundImei1;
+    if (foundImei2) formData.imei2 = foundImei2;
 
     console.log('解析后的表单数据:', formData);
     this.setData({ formData });
