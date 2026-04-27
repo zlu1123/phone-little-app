@@ -22,9 +22,9 @@ const getEnvVersion = () => {
  * - release：正式版
  */
 const API_BASE_BY_ENV = {
-  develop: 'http://43.164.129.96:8090',
-  trial: 'http://43.164.129.96:8090',
-  release: 'http://43.164.129.96:8090'
+  develop: 'http://124.222.38.87:8090',
+  trial: 'http://124.222.38.87:8090',
+  release: 'http://124.222.38.87:8090'
 };
 
 const getApiBase = () => {
