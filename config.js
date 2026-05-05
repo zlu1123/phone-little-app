@@ -22,9 +22,9 @@ const getEnvVersion = () => {
  * - release：正式版
  */
 const API_BASE_BY_ENV = {
-  develop: 'http://124.222.38.87:8090',
-  trial: 'http://124.222.38.87:8090',
-  release: 'http://124.222.38.87:8090'
+  develop: 'https://www.ybxz.top/prod-api/',
+  trial: 'https://www.ybxz.top/prod-api/',
+  release: 'https://www.ybxz.top/prod-api/'
 };
 
 const getApiBase = () => {

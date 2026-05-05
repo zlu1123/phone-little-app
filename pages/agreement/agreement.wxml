@@ -1,0 +1,14 @@
+<!--pages/agreement/agreement.wxml-->
+<view class="agreement-page">
+  <view class="safe-area-top" style="height: {{statusBarHeight}}px"></view>
+  <view class="nav-header">
+    <view class="back-btn" bindtap="handleBack">
+      <text class="back-arrow">←</text>
+      <text class="back-text">返回</text>
+    </view>
+    <text class="page-title">{{title}}</text>
+  </view>
+  <view class="content-wrapper">
+    <rich-text nodes="{{content}}" class="agreement-content"></rich-text>
+  </view>
+</view>

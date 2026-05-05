@@ -431,14 +431,10 @@ Page({
   // 查看协议
   handleViewAgreement(e) {
     const type = e.currentTarget.dataset.type;
-    wx.showToast({
-      title: type === 'user' ? '用户协议' : '隐私政策',
-      icon: 'none'
+    // 跳转到协议页面
+    wx.navigateTo({
+      url: `/pages/agreement/agreement?type=${type}`
     });
-    // TODO: 跳转到协议页面
-    // wx.navigateTo({
-    //   url: `/pages/agreement/agreement?type=${type}`
-    // });
   },
 
   // 游客模式

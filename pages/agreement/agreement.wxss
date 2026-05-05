@@ -1,0 +1,59 @@
+/* pages/agreement/agreement.wxss */
+.agreement-page {
+  min-height: 100vh;
+  background-color: #f7f8fa;
+}
+
+.safe-area-top {
+  width: 100%;
+}
+
+.nav-header {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  padding: 0 30rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #ebedf0;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 20rpx 10rpx 0;
+  margin-right: 20rpx;
+}
+
+.back-arrow {
+  font-size: 36rpx;
+  color: #323233;
+  margin-right: 8rpx;
+}
+
+.back-text {
+  font-size: 28rpx;
+  color: #323233;
+}
+
+.page-title {
+  flex: 1;
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #323233;
+  text-align: center;
+  margin-right: 60rpx;
+}
+
+.content-wrapper {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.agreement-content {
+  font-size: 28rpx;
+  color: #323233;
+  line-height: 1.8;
+}

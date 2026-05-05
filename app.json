@@ -5,7 +5,8 @@
     "pages/my/my",
     "pages/profile/profile",
     "pages/history/history",
-    "pages/webview/webview"
+    "pages/webview/webview",
+    "pages/agreement/agreement"
   ],
   "window": {
     "navigationBarTextStyle": "black",

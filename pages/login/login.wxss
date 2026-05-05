@@ -217,3 +217,23 @@
 .guest-entry:active {
   opacity: 0.7;
 }
+
+/* 协议勾选区域 */
+.agreement-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 32rpx;
+  font-size: 24rpx;
+  color: #969799;
+}
+
+.agreement-checkbox {
+  margin-right: 8rpx;
+}
+
+.agreement-link {
+  color: #1989fa;
+  margin: 0 4rpx;
+}
