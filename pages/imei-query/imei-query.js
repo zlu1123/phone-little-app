@@ -29,7 +29,13 @@ Page({
     // 手机型号选择
     showModelPicker: false,
     selectedModelName: '',
-    modelOptions: []
+    modelOptions: [],
+
+    // 公众号引导弹窗
+    showOAModal: false,
+
+    // 【仅开发/体验环境可见】：未查询时也能直接入口「前往亚丁屏卫」，方便调试
+    isDev: false
   },
 
   onShow() {
@@ -37,13 +43,30 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ active: 0 });
     }
+    // 识别环境：develop=开发版 / trial=体验版 时显示调试入口
+    this.detectDevEnv();
     this.checkLoginStatus();
     // 获取手机型号列表
     this.fetchPhoneTypeList();
-    // 用户从公众号 webview 页面返回后，主动弹出兜底引导
+    // 用户从公众号 webview 页面返回后，主动弹出兑底引导
     this.checkOfficialAccountReturn();
   },
 
+  // 检测是否为开发/体验环境，控制调试入口可见性
+  detectDevEnv() {
+    if (this.data.isDev) return;
+    let isDev = false;
+    try {
+      const accountInfo = (typeof wx.getAccountInfoSync === 'function')
+        ? wx.getAccountInfoSync()
+        : null;
+      const envVersion = accountInfo && accountInfo.miniProgram && accountInfo.miniProgram.envVersion;
+      isDev = envVersion === 'develop' || envVersion === 'trial';
+    } catch (e) {
+      isDev = false;
+    }
+    if (isDev) this.setData({ isDev: true });
+  },
   // 从接口获取手机型号列表
   async fetchPhoneTypeList() {
     // 如果已经加载过，不重复请求
@@ -801,59 +824,13 @@ Page({
     }
   },
 
-  // 判断当前环境是否支持通过 web-view 打开公众号主页
-  // 微信对 mp.weixin.qq.com 在 web-view 中存在严格限制：
-  //   - 开发者工具、PC 微信、Mac 微信 100% 无法打开
-  //   - Android / iOS 真机大部分情况下也会出现"无法打开该页面"
-  // 因此非真机环境直接走兜底，避免用户看到死页面
-  isOfficialAccountWebViewSupported() {
-    try {
-      const sysInfo = wx.getSystemInfoSync();
-      const platform = (sysInfo.platform || '').toLowerCase();
-      // 真机仅 android / ios（devtools / windows / mac 都不支持）
-      return platform === 'android' || platform === 'ios';
-    } catch (e) {
-      return false;
-    }
-  },
-
-  // 兜底方案：复制公众号名称并引导用户到微信首页搜索
-  fallbackCopyOfficialAccount() {
-    wx.setClipboardData({
-      data: '亚丁屏卫',
-      success: () => {
-        wx.hideToast();
-        wx.showModal({
-          title: '即将前往微信搜索',
-          content:
-            '已为您复制公众号名称"亚丁屏卫"，请在微信首页搜索框粘贴并关注。',
-          confirmText: '我知道了',
-          showCancel: false
-        });
-      }
-    });
-  },
-
-  // 用户从公众号 webview 页面返回时的兜底引导
+  // 兼容保留：用户从公众号 webview 返回时的兜底引导（当前流程已不再使用 webview 跳转，保留空实现避免调用报错）
   checkOfficialAccountReturn() {
     if (!this._pendingOAReturn) return;
     this._pendingOAReturn = false;
-
-    wx.showModal({
-      title: '没能成功打开公众号？',
-      content:
-        '微信可能限制了页面跳转。是否复制公众号名称"亚丁屏卫"，前往微信首页搜索关注？',
-      confirmText: '复制并搜索',
-      cancelText: '已关注',
-      success: res => {
-        if (res.confirm) {
-          this.fallbackCopyOfficialAccount();
-        }
-      }
-    });
   },
 
-  // 跳转到公众号
+  // ========== 跳转公众号入口：弹出自定义 Modal，由用户选择跳转方式 ==========
   handleJumpToOfficialAccount() {
     const { queryResult } = this.data;
 
@@ -865,29 +842,17 @@ Page({
       return;
     }
 
-    // 非真机环境（开发者工具 / PC / Mac）直接走兜底，避免用户看到"无法打开该页面"
-    if (!this.isOfficialAccountWebViewSupported()) {
-      this.fallbackCopyOfficialAccount();
-      return;
-    }
-
-    // 使用公众号 biz key 跳转到亚丁屏卫公众号主页
-    const bizKey = 'MzI3MTI3MjI5MA==';
-    const profileUrl = `https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=${bizKey}#wechat_redirect`;
-
-    // 真机也可能因为微信策略加载失败，但 fail 回调捕获不到该错误，
-    // 因此打标记，等用户从 webview 返回后由 onShow 主动弹出兜底引导
-    this._pendingOAReturn = true;
-
-    wx.navigateTo({
-      url: `/pages/webview/webview?url=${encodeURIComponent(profileUrl)}`,
-      fail: () => {
-        // 跳转失败，立即兜底，无需等待返回
-        this._pendingOAReturn = false;
-        this.fallbackCopyOfficialAccount();
-      }
-    });
+    this.setData({ showOAModal: true });
   },
+
+  // 关闭公众号引导 Modal
+  handleCloseOAModal() {
+    this.setData({ showOAModal: false });
+  },
+
+  // 阻止内部点击事件冒泡到遮罩层
+  handleNoop() { },
+
   // 重置查询
   handleReset() {
     // 重置时保留当前型号列表，默认选中第一个

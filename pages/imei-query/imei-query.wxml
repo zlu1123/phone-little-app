@@ -68,6 +68,20 @@
       </view>
     </view>
 
+    <!-- 【仅开发/体验环境】调试入口：直接展示「前往亚丁屏卫」，方便测试二维码弹窗 -->
+    <!-- <view wx:if="{{ isDev }}" class="dev-entry-card">
+      <view class="dev-entry-tag">DEV</view>
+      <view
+        class="dev-entry-btn"
+        hover-class="dev-entry-btn--hover"
+        bindtap="handleJumpToOfficialAccount"
+        aria-label="测试 - 前往亚丁屏卫"
+      >
+        <van-icon name="wechat" size="20px" color="#ee0a24" custom-style="margin-right: 12rpx;" />
+        <text>🧪 测试 - 前往亚丁屏卫</text>
+      </view>
+    </view> -->
+
     <!-- 步骤2：识别结果编辑表单 -->
     <view wx:if="{{ activeStep >= 1 }}" class="card-section">
       <view class="section-header">
@@ -187,4 +201,39 @@
     cancel-text="取消"
     bind:cancel="onCloseModelPicker"
   />
+
+  <!-- 公众号引导弹窗（自定义 Modal） -->
+  <van-popup
+    show="{{ showOAModal }}"
+    round="{{ true }}"
+    closeable="{{ true }}"
+    close-icon-position="top-right"
+    custom-class="oa-modal"
+    bind:close="handleCloseOAModal"
+  >
+    <view class="oa-modal__inner" catchtap="handleNoop">
+      <view class="oa-modal__header">
+        <view class="oa-modal__icon">
+          <van-icon name="wechat" size="44" color="#07c160" />
+        </view>
+        <view class="oa-modal__title">关注亚丁屏卫公众号</view>
+        <view class="oa-modal__subtitle">长按下方二维码识别关注</view>
+      </view>
+
+      <view class="oa-qrcode-wrapper">
+        <image
+          class="oa-qrcode-image"
+          src="/images/yading-qrcode.png"
+          mode="aspectFit"
+          show-menu-by-longpress="{{ true }}"
+          aria-label="亚丁屏卫公众号二维码，长按识别"
+        />
+      </view>
+
+      <view class="oa-modal__tip">
+        <van-icon name="info-o" size="22" color="#969799" />
+        <text>长按图片 → 选择「识别图中二维码」</text>
+      </view>
+    </view>
+  </van-popup>
 </view>
