@@ -16,7 +16,7 @@ App({
 
     // 开启 vConsole 调试
     wx.setEnableDebug({
-      enableDebug: false
+      enableDebug: true
     });
   }
 });

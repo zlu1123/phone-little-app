@@ -11,6 +11,8 @@
   right: 0;
   z-index: 100;
   background-color: #1989fa;
+  /* 为固定定位的导航栏添加顶部安全距离 */
+  padding-top: env(safe-area-inset-top);
 }
 
 .nav-bar-inner {

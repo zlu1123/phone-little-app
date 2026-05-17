@@ -4,7 +4,7 @@
 }
 
 .scroll-container {
-  height: calc(100vh - 46px);
+  height: calc(100vh - 46px - env(safe-area-inset-top));
 }
 
 .loading-container,

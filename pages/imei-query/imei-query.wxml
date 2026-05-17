@@ -169,6 +169,19 @@
       <!-- 跳转按钮 -->
       <view class="action-btn">
         <van-button
+          wx:if="{{ queryResult && !queryResult.isExpired }}"
+          round="{{true}}"
+          block="{{true}}"
+          type="primary"
+          bind:click="handleShowContract"
+          icon="description"
+          custom-class="mb-3"
+          color="linear-gradient(to right, #ff976a, #ee0a24)"
+        >
+          查看协议并签名
+        </van-button>
+
+        <van-button
           round="{{true}}"
           block="{{true}}"
           type="{{ queryResult.isExpired ? 'default' : 'success' }}"
@@ -181,6 +194,27 @@
           {{ queryResult.isExpired ? '保修已过期' : '前往亚丁屏卫' }}
         </van-button>
 
+        <!-- 已签署协议信息展示 -->
+        <view wx:if="{{ signedContractInfo }}" class="signed-contract-info mb-3">
+          <view class="signed-contract-title">
+            <van-icon name="certificate" size="18" color="#07c160" custom-style="margin-right:8rpx;" />
+            <text>已签署协议</text>
+          </view>
+          <view class="signed-contract-detail">
+            <text class="contract-name">{{ signedContractInfo.contractName }}</text>
+            <text class="contract-version">{{ signedContractInfo.contractVersion }}</text>
+          </view>
+          <van-button
+            size="small"
+            plain
+            type="primary"
+            bind:click="handleViewSignedContract"
+            custom-style="margin-top:12rpx;"
+          >
+            查看已签署协议
+          </van-button>
+        </view>
+
         <van-button round="{{true}}" block="{{true}}" plain="{{true}}" type="primary" bind:click="handleReset" icon="replay">
           重新查询
         </van-button>
@@ -192,48 +226,4 @@
     </view>
   </view>
 
-  <!-- 手机型号选择器 -->
-  <van-action-sheet
-    show="{{ showModelPicker }}"
-    actions="{{ modelOptions }}"
-    bind:close="onCloseModelPicker"
-    bind:select="onSelectModel"
-    cancel-text="取消"
-    bind:cancel="onCloseModelPicker"
-  />
-
-  <!-- 公众号引导弹窗（自定义 Modal） -->
-  <van-popup
-    show="{{ showOAModal }}"
-    round="{{ true }}"
-    closeable="{{ true }}"
-    close-icon-position="top-right"
-    custom-class="oa-modal"
-    bind:close="handleCloseOAModal"
-  >
-    <view class="oa-modal__inner" catchtap="handleNoop">
-      <view class="oa-modal__header">
-        <view class="oa-modal__icon">
-          <van-icon name="wechat" size="44" color="#07c160" />
-        </view>
-        <view class="oa-modal__title">关注亚丁屏卫公众号</view>
-        <view class="oa-modal__subtitle">长按下方二维码识别关注</view>
-      </view>
-
-      <view class="oa-qrcode-wrapper">
-        <image
-          class="oa-qrcode-image"
-          src="/images/yading-qrcode.png"
-          mode="aspectFit"
-          show-menu-by-longpress="{{ true }}"
-          aria-label="亚丁屏卫公众号二维码，长按识别"
-        />
-      </view>
-
-      <view class="oa-modal__tip">
-        <van-icon name="info-o" size="22" color="#969799" />
-        <text>长按图片 → 选择「识别图中二维码」</text>
-      </view>
-    </view>
-  </van-popup>
 </view>

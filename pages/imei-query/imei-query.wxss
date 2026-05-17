@@ -4,6 +4,9 @@ page {
   height: auto !important;
   overflow-y: auto !important;
   display: block !important;
+  /* 安全距离：顶部 */
+  padding-top: env(safe-area-inset-top);
+  box-sizing: border-box;
 }
 
 .imei-page {
@@ -382,4 +385,42 @@ page {
 .dev-entry-btn--hover {
   background: rgba(238, 10, 36, 0.08);
   transform: scale(0.98);
+}
+
+/* ========== 已签署协议信息展示 ========== */
+.signed-contract-info {
+  background: linear-gradient(135deg, #f0faf4 0%, #e8f5ee 100%);
+  border: 2rpx solid #07c160;
+  border-radius: 16rpx;
+  padding: 24rpx 28rpx;
+  margin-bottom: 24rpx;
+}
+
+.signed-contract-title {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #07c160;
+  margin-bottom: 12rpx;
+}
+
+.signed-contract-detail {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.contract-name {
+  font-size: 26rpx;
+  color: #323233;
+  font-weight: 500;
+}
+
+.contract-version {
+  font-size: 22rpx;
+  color: #969799;
+  background: #f2f3f5;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
 }

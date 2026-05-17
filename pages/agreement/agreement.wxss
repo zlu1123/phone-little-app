@@ -13,8 +13,13 @@
   align-items: center;
   height: 88rpx;
   padding: 0 30rpx;
+  padding-top: env(safe-area-inset-top);
   background: #fff;
   border-bottom: 1rpx solid #ebedf0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-sizing: border-box;
 }
 
 .back-btn {

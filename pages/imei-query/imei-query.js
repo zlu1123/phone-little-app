@@ -2,6 +2,7 @@
 const {
   API_ENDPOINTS,
   buildApiUrl,
+  getApiBase,
   isWechatOcrEnabled
 } = require('../../config');
 const { request, uploadFile } = require('../../utils/request');
@@ -34,8 +35,11 @@ Page({
     // 公众号引导弹窗
     showOAModal: false,
 
-    // 【仅开发/体验环境可见】：未查询时也能直接入口「前往亚丁屏卫」，方便调试
-    isDev: false
+    // 已签署协议信息（查询后展示）
+    signedContractInfo: null,    // { contractId, contractPath, contractName, contractVersion, signaturePath }
+
+    // API 基础地址（供 WXML 拼接协议文件完整 URL）
+    apiBase: ''
   },
 
   onShow() {
@@ -43,6 +47,8 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ active: 0 });
     }
+    // 将 apiBase 写入 data，供 WXML 拼接协议文件 URL
+    this.setData({ apiBase: getApiBase() });
     // 识别环境：develop=开发版 / trial=体验版 时显示调试入口
     this.detectDevEnv();
     this.checkLoginStatus();
@@ -67,6 +73,7 @@ Page({
     }
     if (isDev) this.setData({ isDev: true });
   },
+
   // 从接口获取手机型号列表
   async fetchPhoneTypeList() {
     // 如果已经加载过，不重复请求
@@ -262,23 +269,22 @@ Page({
         return;
       }
 
-      // 3. 所有OCR服务都失败，使用模拟数据
-      console.log('所有OCR服务失败，使用模拟数据...');
+      // 3. 所有OCR服务都失败，提示用户重试（不再使用 mock 兜底，便于全链路测试暴露真实问题）
+      console.error('所有OCR服务失败');
+      this.setData({ isRecognizing: false });
       wx.showToast({
-        title: 'OCR服务不可用，使用模拟数据',
+        title: 'OCR识别失败，请重试或手动输入',
         icon: 'none',
         duration: 2000
       });
-      this.mockOCR(file);
     } catch (error) {
       console.error('OCR识别流程失败:', error);
+      this.setData({ isRecognizing: false });
       wx.showToast({
         title: error.message || 'OCR识别失败',
         icon: 'none',
         duration: 2000
       });
-      // 最终兜底：使用模拟数据
-      this.mockOCR(file);
     } finally {
       wx.hideLoading();
     }
@@ -513,52 +519,6 @@ Page({
     this.scrollToElement('#step-2-card');
   },
 
-  // 模拟OCR识别（前端mock）
-  mockOCR(_file) {
-    // 重置状态
-    this.setData({
-      activeStep: 0,
-      queryResult: null,
-      formData: {
-        typeCode: this.data.formData.typeCode || '1',
-        sn: '',
-        imei: '',
-        imei2: ''
-      },
-      isRecognizing: true
-    });
-
-    wx.showToast({
-      title: '使用模拟数据...',
-      icon: 'none',
-      duration: 1000
-    });
-
-    // 模拟OCR识别延迟
-    setTimeout(() => {
-      // 模拟识别结果
-      const mockText =
-        'SN: ABC123DEF456\nIMEI: 353456789012345\nIMEI2: 353456789012346';
-
-      // 解析OCR结果
-      this.parseOCRResultToForm(mockText);
-
-      // 识别成功，进入下一步
-      this.setData({
-        activeStep: 1,
-        isRecognizing: false
-      });
-
-      wx.showToast({
-        title: '识别完成',
-        icon: 'success',
-        duration: 1500
-      });
-
-      this.scrollToElement('#step-2-card');
-    }, 1000);
-  },
-
   // 解析OCR结果填充表单
   parseOCRResultToForm(text) {
     const lines = text
@@ -786,7 +746,8 @@ Page({
           isExpired = true;
         }
 
-        const mockData = {
+        const queryResultData = {
+          id: resultData.id || '', // 订单id，用于 signContract 接口
           productName: resultData.model || '未知设备',
           activationDate: resultData.activateDate || '未知',
           coverageDate: coverageDate || '未知',
@@ -795,7 +756,7 @@ Page({
         };
 
         this.setData({
-          queryResult: mockData,
+          queryResult: queryResultData,
           activeStep: 2,
           isQuerying: false
         });
@@ -898,5 +859,58 @@ Page({
         }
       });
     }, 300);
+  },
+
+  // 清除签名 Canvas 引用
+  clearSignatureCanvas() {
+    this.signatureCtx = null;
+    this.signatureCanvas = null;
+  },
+
+  // ========== 查看协议并签名：跳转到协议签订页 ==========
+  handleShowContract() {
+    const { queryResult } = this.data;
+
+    // 防御：必须有真实查询结果且未过保
+    if (!queryResult) {
+      wx.showToast({ title: '请先完成查询', icon: 'none' });
+      return;
+    }
+    if (queryResult.isExpired) {
+      wx.showToast({ title: '设备已过保，无法签订协议', icon: 'none' });
+      return;
+    }
+
+    const orderId = queryResult.id;
+    if (!orderId) {
+      wx.showToast({ title: '订单信息缺失，请重新查询', icon: 'none' });
+      return;
+    }
+
+    wx.navigateTo({
+      url: '/pages/contract-sign/contract-sign?orderId=' + orderId
+    });
+  },
+
+  // ========== 查看已签署协议 ==========
+  handleViewSignedContract() {
+    const { signedContractInfo, contractData } = this.data;
+    const filePath = signedContractInfo?.contractPath || contractData?.filePath;
+    if (!filePath) {
+      wx.showToast({ title: '协议文件不存在', icon: 'none' });
+      return;
+    }
+    // 拼接完整 URL 并用 wx.previewImage / wx.openDocument 打开
+    const baseUrl = getApiBase();
+    const fullPath = filePath.startsWith('http') ? filePath : `${baseUrl}${filePath}`;
+    console.log("🚀 ~ fullPath:", fullPath)
+    wx.openDocument({
+      filePath: fullPath,
+      showMenu: true,
+      fail: () => {
+        // 如果不支持直接打开，尝试下载后用 web-view 或预览图片
+        wx.showToast({ title: '协议文件无法预览', icon: 'none' });
+      }
+    });
   }
 });

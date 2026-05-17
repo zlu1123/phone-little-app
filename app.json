@@ -6,7 +6,8 @@
     "pages/profile/profile",
     "pages/history/history",
     "pages/webview/webview",
-    "pages/agreement/agreement"
+    "pages/agreement/agreement",
+    "pages/contract-sign/contract-sign"
   ],
   "window": {
     "navigationBarTextStyle": "black",

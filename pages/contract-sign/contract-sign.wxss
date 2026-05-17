@@ -1,0 +1,249 @@
+/* pages/contract-sign/contract-sign.wxss */
+/* 遵循 Vant Weapp 设计规范 */
+
+.contract-sign-page {
+  min-height: 100vh;
+  background: #f7f8fa;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========== 自定义导航栏 ========== */
+.nav-header {
+  width: 100%;
+  background: #fff;
+  border-bottom: 1rpx solid #ebedf0;
+  box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-bar {
+  position: relative;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 32rpx;
+  z-index: 1;
+}
+
+.back-btn:active {
+  opacity: 0.6;
+}
+
+.back-arrow {
+  font-size: 36rpx;
+  color: #323233;
+  margin-right: 8rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.back-text {
+  font-size: 28rpx;
+  color: #323233;
+  line-height: 1;
+}
+
+.page-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #323233;
+  text-align: center;
+}
+
+.nav-placeholder {
+  display: none;
+}
+
+/* ========== 阶段1：查看协议 ========== */
+.contract-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f7f8fa;
+}
+
+.contract-section .nav-header {
+  flex-shrink: 0;
+}
+
+/* 协议信息卡片 */
+.contract-card {
+  flex: 1;
+  margin: 32rpx;
+  padding: 60rpx 40rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contract-icon {
+  margin-bottom: 32rpx;
+}
+
+.contract-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #323233;
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.contract-version {
+  font-size: 26rpx;
+  color: #969799;
+  margin-bottom: 40rpx;
+}
+
+.contract-tip {
+  font-size: 28rpx;
+  color: #646566;
+  text-align: center;
+  line-height: 1.8;
+  margin-bottom: 60rpx;
+  white-space: pre-line;
+}
+
+.btn-view {
+  width: 100%;
+  margin-bottom: 32rpx;
+}
+
+/* 状态提示 */
+.countdown-tips,
+.success-tips,
+.default-tips {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  margin-top: 8rpx;
+}
+
+.countdown-tips {
+  color: #ff976a;
+}
+
+.success-tips {
+  color: #07c160;
+}
+
+.default-tips {
+  color: #969799;
+}
+
+/* 底部操作栏 */
+.contract-footer {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #ebedf0;
+  flex-shrink: 0;
+}
+
+.contract-footer .van-button {
+  margin: 0;
+}
+
+.btn-cancel {
+  flex: 1;
+}
+
+.btn-confirm {
+  flex: 2;
+}
+
+/* ========== 阶段2：手写签名 ========== */
+.signature-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f7f8fa;
+}
+
+.signature-section .nav-header {
+  flex-shrink: 0;
+}
+
+.signature-header {
+  margin: 32rpx 32rpx 0;
+  text-align: center;
+}
+
+.signature-title {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #323233;
+}
+
+.signature-subtitle {
+  font-size: 26rpx;
+  color: #969799;
+  margin-top: 12rpx;
+}
+
+/* 签名画布容器 */
+.signature-canvas-wrapper {
+  position: relative;
+  flex: 1;
+  margin: 32rpx;
+  min-height: 480rpx;
+  background: #fff;
+  border: 2rpx dashed #dcdee0;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.signature-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.signature-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dcdee0;
+  font-size: 30rpx;
+  pointer-events: none;
+}
+
+/* 签名底部操作栏 */
+.signature-footer {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #ebedf0;
+  flex-shrink: 0;
+}
+
+.signature-footer .van-button {
+  margin: 0;
+  flex: 1;
+}

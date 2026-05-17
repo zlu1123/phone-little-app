@@ -1,0 +1,143 @@
+<!--pages/contract-sign/contract-sign.wxml-->
+<view class="contract-sign-page">
+  <!-- ===== 阶段1：查看协议 ===== -->
+  <view wx:if="{{ stage === 'contract' }}" class="contract-section">
+    <!-- 自定义导航栏（顶部安全区 + 标题栏） -->
+    <view class="nav-header" style="padding-top: {{ statusBarHeight }}px;">
+      <view class="nav-bar">
+        <view class="back-btn" bindtap="handleCloseContract" aria-label="返回">
+          <text class="back-arrow">←</text>
+          <text class="back-text">返回</text>
+        </view>
+        <text class="page-title">协议签署</text>
+        <view class="nav-placeholder"></view>
+      </view>
+    </view>
+
+    <!-- 协议信息卡片 -->
+    <view class="contract-card">
+      <view class="contract-icon">
+        <van-icon name="description" size="120rpx" color="#1989fa" />
+      </view>
+      <view class="contract-name">{{ contractData.name || '用户协议' }}</view>
+      <view wx:if="{{ contractData.version }}" class="contract-version">版本号：{{ contractData.version }}</view>
+
+      <view class="contract-tip">
+        <text>请点击下方按钮查看协议内容\n阅读完成后即可继续操作</text>
+      </view>
+
+      <!-- 查看协议按钮 -->
+      <van-button
+        class="btn-view"
+        round
+        block
+        type="primary"
+        loading="{{ downloadingContract }}"
+        loading-text="加载中..."
+        bind:click="handleViewContract"
+      >
+        <van-icon name="eye-o" size="32rpx" custom-style="margin-right:10rpx;vertical-align:-4rpx;" />
+        {{ hasOpenedContract ? '重新查看协议' : '查看协议' }}
+      </van-button>
+
+      <!-- 状态提示 -->
+      <view wx:if="{{ hasOpenedContract && contractCountdown > 0 }}" class="countdown-tips">
+        <van-icon name="clock-o" size="28rpx" color="#ff976a" custom-style="margin-right:8rpx;vertical-align:-4rpx;" />
+        <text>请仔细阅读协议内容，{{ contractCountdown }}s 后可确认</text>
+      </view>
+      <view wx:elif="{{ hasOpenedContract && contractCanConfirm }}" class="success-tips">
+        <van-icon name="passed" size="28rpx" color="#07c160" custom-style="margin-right:8rpx;vertical-align:-4rpx;" />
+        <text>已完成阅读，可以确认协议</text>
+      </view>
+      <view wx:else class="default-tips">
+        <text>未查看协议无法进行下一步</text>
+      </view>
+    </view>
+
+    <!-- 底部操作栏 -->
+    <view class="contract-footer">
+      <van-button
+        class="btn-cancel"
+        round
+        size="normal"
+        plain
+        type="default"
+        bind:click="handleCloseContract"
+      >
+        取消
+      </van-button>
+      <van-button
+        class="btn-confirm"
+        round
+        size="normal"
+        type="primary"
+        disabled="{{ !contractCanConfirm }}"
+        bind:click="handleContractConfirm"
+      >
+        我已阅读并同意
+      </van-button>
+    </view>
+  </view>
+
+  <!-- ===== 阶段2：手写签名 ===== -->
+  <view wx:if="{{ stage === 'signature' }}" class="signature-section">
+    <!-- 自定义导航栏 -->
+    <view class="nav-header" style="padding-top: {{ statusBarHeight }}px;">
+      <view class="nav-bar">
+        <view class="back-btn" bindtap="handleCancelSignature" aria-label="返回">
+          <text class="back-arrow">←</text>
+          <text class="back-text">返回</text>
+        </view>
+        <text class="page-title">手写签名</text>
+        <view class="nav-placeholder"></view>
+      </view>
+    </view>
+
+    <view class="signature-header">
+      <view class="signature-title">请手写签名</view>
+      <view class="signature-subtitle">请在下方区域手写您的签名</view>
+    </view>
+
+    <!-- 签名画布 -->
+    <view class="signature-canvas-wrapper">
+      <canvas
+        id="signature-canvas"
+        type="2d"
+        class="signature-canvas"
+        disable-scroll="{{true}}"
+        bindtouchstart="handleSignatureStart"
+        bindtouchmove="handleSignatureMove"
+        bindtouchend="handleSignatureEnd"
+      />
+      <view wx:if="{{ !hasSigned }}" class="signature-placeholder">
+        <text>请在此处签名</text>
+      </view>
+    </view>
+
+    <!-- 底部操作栏 -->
+    <view class="signature-footer">
+      <van-button
+        class="btn-clear"
+        round
+        size="normal"
+        plain
+        type="warning"
+        bind:click="handleClearSignature"
+      >
+        清除重写
+      </van-button>
+      <van-button
+        class="btn-confirm"
+        round
+        size="normal"
+        type="primary"
+        loading="{{ uploadingSignature }}"
+        loading-text="上传中..."
+        disabled="{{ !hasSigned || uploadingSignature }}"
+        bind:click="handleConfirmSignature"
+      >
+        确认签名
+      </van-button>
+    </view>
+  </view>
+</view>

@@ -23,7 +23,8 @@ const getEnvVersion = () => {
  */
 const API_BASE_BY_ENV = {
   // develop: 'http://124.222.38.87:8090',
-  develop: 'https://www.ybxz.top/prod-api/',
+  // develop: 'https://www.ybxz.top/prod-api/',
+  develop: 'http://43.164.129.96:8090',
   trial: 'https://www.ybxz.top/prod-api/',
   release: 'https://www.ybxz.top/prod-api/'
 };
@@ -46,7 +47,11 @@ const API_ENDPOINTS = {
   // 查询个人订单信息
   queryOrderList: '/wechat/api/queryOrderList',
   // 查询手机型号列表
-  queryPhoneTypeList: '/06/api/queryPhoneTypeList'
+  queryPhoneTypeList: '/06/api/queryPhoneTypeList',
+  // 查询生效协议
+  getContract: '/wechat/api/getContract',
+  // 协议签订（同时上传签名图片，multipart/form-data）
+  signContract: '/wechat/api/signContract'
 };
 
 const joinUrl = (baseUrl, path) => {
