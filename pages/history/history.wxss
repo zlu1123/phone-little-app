@@ -88,3 +88,19 @@
   color: #969799;
   font-size: 13px;
 }
+
+/* 已签约信息 */
+.signed-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 6px 8px;
+  background-color: #f0f9eb;
+  border-radius: 4px;
+}
+
+.signed-text {
+  font-size: 13px;
+  color: #07c160;
+}

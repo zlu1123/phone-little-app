@@ -198,6 +198,10 @@ page {
   margin-bottom: 24rpx;
 }
 
+.ml-2 {
+  margin-left: 16rpx;
+}
+
 /* 跳转公众号按钮样式 */
 .jump-btn {
   box-shadow: 0 8rpx 24rpx rgba(7, 193, 96, 0.35) !important;

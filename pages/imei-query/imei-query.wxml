@@ -168,30 +168,32 @@
 
       <!-- 跳转按钮 -->
       <view class="action-btn">
+        <!-- 未过期：显示前往亚丁屏卫 -->
         <van-button
           wx:if="{{ queryResult && !queryResult.isExpired }}"
           round="{{true}}"
           block="{{true}}"
-          type="primary"
+          type="success"
+          bind:click="handleJumpToOfficialAccount"
+          icon="wechat"
+          custom-class="mb-3"
+          color="linear-gradient(to right, #07c160, #06ad56)"
+        >
+          前往亚丁屏卫
+        </van-button>
+
+        <!-- 已过期：显示前往签协议 -->
+        <van-button
+          wx:if="{{ queryResult && queryResult.isExpired }}"
+          round="{{true}}"
+          block="{{true}}"
+          type="warning"
           bind:click="handleShowContract"
           icon="description"
           custom-class="mb-3"
           color="linear-gradient(to right, #ff976a, #ee0a24)"
         >
-          查看协议并签名
-        </van-button>
-
-        <van-button
-          round="{{true}}"
-          block="{{true}}"
-          type="{{ queryResult.isExpired ? 'default' : 'success' }}"
-          disabled="{{ queryResult.isExpired }}"
-          bind:click="handleJumpToOfficialAccount"
-          icon="{{ queryResult.isExpired ? 'close' : 'wechat' }}"
-          custom-class="mb-3 jump-btn"
-          color="{{ queryResult.isExpired ? '' : 'linear-gradient(to right, #07c160, #06ad56)' }}"
-        >
-          {{ queryResult.isExpired ? '保修已过期' : '前往亚丁屏卫' }}
+          前往查看协议并签名
         </van-button>
 
         <!-- 已签署协议信息展示 -->

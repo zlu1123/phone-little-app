@@ -82,11 +82,15 @@ Page({
       }
     }
 
+    // 判断是否已签约：contractPath 和 signaturePath 均存在即为已签约
+    const isSigned = !!(item.contractPath && item.signaturePath);
+
     return {
       ...item,
       isExpired,
       warrantyStatus,
-      activatedAtQuery
+      activatedAtQuery,
+      isSigned
     };
   },
 

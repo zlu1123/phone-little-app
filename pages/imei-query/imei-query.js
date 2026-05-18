@@ -752,7 +752,11 @@ Page({
           activationDate: resultData.activateDate || '未知',
           coverageDate: coverageDate || '未知',
           isExpired: isExpired,
-          warrantyStatus: warrantyStatus
+          warrantyStatus: warrantyStatus,
+          contractPath: resultData.contractPath || '',
+          signaturePath: resultData.signaturePath || '',
+          contractName: resultData.contractName || '',
+          contractVersion: resultData.contractVersion || ''
         };
 
         this.setData({
@@ -874,10 +878,6 @@ Page({
     // 防御：必须有真实查询结果且未过保
     if (!queryResult) {
       wx.showToast({ title: '请先完成查询', icon: 'none' });
-      return;
-    }
-    if (queryResult.isExpired) {
-      wx.showToast({ title: '设备已过保，无法签订协议', icon: 'none' });
       return;
     }
 
