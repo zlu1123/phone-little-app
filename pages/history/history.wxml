@@ -67,9 +67,9 @@
             <text class="label">保修截止：</text>
             <text class="value">{{ item.coverage }}</text>
           </view>
-          <view class="signed-info" wx:if="{{ item.isSigned }}">
+          <view class="signed-info" wx:if="{{ item.isSigned }}" bindtap="handleViewSignedContract" data-item="{{ item }}">
             <van-icon name="certificate" size="14" color="#07c160" />
-            <text class="signed-text">已签署协议</text>
+            <text class="signed-text">已签署协议 (点击查看)</text>
           </view>
         </view>
       </view>
@@ -83,4 +83,38 @@
       </view>
     </view>
   </scroll-view>
+
+  <!-- 已签署协议弹窗 -->
+  <van-dialog
+    use-slot
+    title="已签署协议信息"
+    show="{{ showSignedDialog }}"
+    bind:close="onCloseSignedDialog"
+    confirm-button-text="关闭"
+  >
+    <view class="signed-dialog-content">
+      <view class="info-row">
+        <text class="label">签署日期：</text>
+        <text class="value">{{ currentSignedItem.signatureDate }}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">签署型号：</text>
+        <text class="value">{{ currentSignedItem.signatureModel }}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">签署IMEI：</text>
+        <text class="value">{{ currentSignedItem.signatureImei }}</text>
+      </view>
+      <view class="info-row" wx:if="{{ currentSignedItem.contractVersion }}">
+        <text class="label">协议版本：</text>
+        <text class="value">{{ currentSignedItem.contractVersion }}</text>
+      </view>
+      <view class="info-row signature-row" wx:if="{{ currentSignedItem.fullSignaturePath }}">
+        <text class="label">用户签名：</text>
+        <view class="value">
+          <image class="signature-image" src="{{ currentSignedItem.fullSignaturePath }}" mode="aspectFit" bindtap="previewSignature" />
+        </view>
+      </view>
+    </view>
+  </van-dialog>
 </view>

@@ -1,4 +1,4 @@
-const { API_ENDPOINTS, buildApiUrl } = require('../../config');
+const { API_ENDPOINTS, buildApiUrl, getApiBase } = require('../../config');
 const { request } = require('../../utils/request');
 
 Page({
@@ -10,15 +10,47 @@ Page({
     pageNum: 1,
     pageSize: 10,
     finished: false,
-    loadingMore: false
+    loadingMore: false,
+    // 弹窗相关
+    showSignedDialog: false,
+    currentSignedItem: null,
+    apiBase: ''
   },
 
   onLoad() {
+    this.setData({ apiBase: getApiBase() });
     this.fetchOrderList(true);
   },
 
   onClickLeft() {
     wx.navigateBack();
+  },
+
+  // 查看已签署协议
+  handleViewSignedContract(e) {
+    const item = e.currentTarget.dataset.item;
+    this.setData({
+      showSignedDialog: true,
+      currentSignedItem: item
+    });
+  },
+
+  // 关闭已签署协议弹窗
+  onCloseSignedDialog() {
+    this.setData({
+      showSignedDialog: false,
+      currentSignedItem: null
+    });
+  },
+
+  // 预览签名图片
+  previewSignature() {
+    const { currentSignedItem } = this.data;
+    if (currentSignedItem && currentSignedItem.fullSignaturePath) {
+      wx.previewImage({
+        urls: [currentSignedItem.fullSignaturePath]
+      });
+    }
   },
 
   // scroll-view 下拉刷新
@@ -82,15 +114,23 @@ Page({
       }
     }
 
-    // 判断是否已签约：contractPath 和 signaturePath 均存在即为已签约
-    const isSigned = !!(item.contractPath && item.signaturePath);
+    // 判断是否已签约：signatureDate, signatureImei, signatureModel 均存在即为已签约
+    const isSigned = !!(item.signatureDate && item.signatureImei && item.signatureModel);
+
+    // 处理签名图片完整路径
+    let fullSignaturePath = '';
+    if (item.signaturePath) {
+      const apiBase = getApiBase();
+      fullSignaturePath = item.signaturePath.startsWith('http') ? item.signaturePath : `${apiBase}${item.signaturePath}`;
+    }
 
     return {
       ...item,
       isExpired,
       warrantyStatus,
       activatedAtQuery,
-      isSigned
+      isSigned,
+      fullSignaturePath
     };
   },
 

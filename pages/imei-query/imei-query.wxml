@@ -23,20 +23,22 @@
 
       <!-- 手机型号选择（必选） -->
       <view class="model-select-wrapper">
-        <van-cell-group inset class="model-select-group">
-          <van-field
-            value="{{ selectedModelName }}"
-            label="手机型号"
-            title-width="5em"
-            placeholder="请选择手机型号（必选）"
-            readonly
-            is-link
-            required
-            bind:click-input="onShowModelPicker"
-            bind:click="onShowModelPicker"
-            disabled="{{ isRecognizing || activeStep >= 2 }}"
-          />
-        </van-cell-group>
+        <van-skeleton title row="1" loading="{{ isFetchingModel }}">
+          <van-cell-group inset class="model-select-group">
+            <van-field
+              value="{{ selectedModelName }}"
+              label="手机型号"
+              title-width="5em"
+              placeholder="请选择手机型号（必选）"
+              readonly
+              is-link
+              required
+              bind:click-input="onShowModelPicker"
+              bind:click="onShowModelPicker"
+              disabled="{{ isRecognizing || activeStep >= 2 }}"
+            />
+          </van-cell-group>
+        </van-skeleton>
       </view>
 
       <view class="upload-wrapper">

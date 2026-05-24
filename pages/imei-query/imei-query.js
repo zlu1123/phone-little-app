@@ -31,6 +31,7 @@ Page({
     showModelPicker: false,
     selectedModelName: '',
     modelOptions: [],
+    isFetchingModel: true,
 
     // 公众号引导弹窗
     showOAModal: false,
@@ -77,7 +78,12 @@ Page({
   // 从接口获取手机型号列表
   async fetchPhoneTypeList() {
     // 如果已经加载过，不重复请求
-    if (this.data.modelOptions.length > 0) return;
+    if (this.data.modelOptions.length > 0) {
+      this.setData({ isFetchingModel: false });
+      return;
+    }
+
+    this.setData({ isFetchingModel: true });
 
     try {
       const res = await request({
@@ -111,6 +117,8 @@ Page({
       console.error('获取手机型号列表异常:', error);
       // 网络异常时使用兜底数据
       this.setFallbackModelOptions();
+    } finally {
+      this.setData({ isFetchingModel: false });
     }
   },
 

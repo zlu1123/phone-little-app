@@ -16,7 +16,8 @@
     "van-tag": "@vant/weapp/tag/index",
     "van-steps": "@vant/weapp/steps/index",
     "van-nav-bar": "@vant/weapp/nav-bar/index",
-    "van-action-sheet": "@vant/weapp/action-sheet/index"
+    "van-action-sheet": "@vant/weapp/action-sheet/index",
+    "van-skeleton": "@vant/weapp/skeleton/index"
   },
   "navigationBarTitleText": "IMEI查询",
   "navigationStyle": "custom"
