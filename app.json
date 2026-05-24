@@ -13,6 +13,7 @@
     "navigationBarTextStyle": "black",
     "navigationStyle": "custom"
   },
+  "resizable": true,
   "tabBar": {
     "custom": true,
     "color": "#7d7e80",

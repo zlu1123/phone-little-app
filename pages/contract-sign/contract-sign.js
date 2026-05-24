@@ -14,16 +14,24 @@ Page({
     orderId: '',
 
     // 协议数据
-    contractData: null,        // { id, name, version, filePath, ... }
-    pdfUrl: '',               // 协议 PDF 远程链接
-    localPdfPath: '',         // 已下载到本地的临时文件路径
-    contractCountdown: 10,     // 倒计时秒数
+    contractData: null,        // { id, name, version, content, ... }
+    contractContent: '',       // 协议正文（HTML 富文本，由后端返回）
+    contractLoaded: false,     // 协议是否加载完成
+    // 「我已阅读并同意」需同时满足两个条件才可点击：
+    //   1) 已滚动到协议底部（或内容本身就不需要滚动）
+    //   2) 进入页面后已超过 10s（防止用户秒点）
+    contractScrolledToBottom: false,
+    contractCountdown: 10,     // 阅读倒计时秒数（≤0 视为已结束）
     contractCountdownTimer: null,
-    contractCanConfirm: false,
-    hasOpenedContract: false,  // 是否已经查看过协议（点过"查看协议"按钮）
+    contractCanConfirm: false, // 计算字段：scrolledToBottom && countdown<=0
 
-    // 下载/打开状态
-    downloadingContract: false,
+    // 设备信息表单（阶段2：提交前填写）
+    deviceForm: {
+      imei: '',           // 对应后端 signature_imei
+      sn: '',             // 与 IMEI 二选一（任一非空即可）
+      phoneModel: ''      // 对应后端 signature_model
+    },
+    deviceSubmitting: false,   // 点击「下一步」后的 loading（防重复）
 
     // 签名
     signatureCanvasId: 'signature-canvas',
@@ -37,7 +45,7 @@ Page({
     // API 基础地址
     apiBase: '',
 
-    // 阶段：'contract' = 查看协议，'signature' = 签名
+    // 阶段：'contract' = 查看协议，'device-info' = 填写设备信息，'signature' = 手写签名
     stage: 'contract'
   },
 
@@ -54,13 +62,75 @@ Page({
     this.loadContract();
   },
 
+  // 页面卸载：清理倒计时 + 兼底恢复为竖屏，避免在上一个页面仍以横屏错位展示
   onUnload() {
     this.clearContractCountdown();
+    this.setOrientation('portrait');
+  },
+
+  // 页面尺寸变化（含横竖屏切换）
+  // 设备旋转动画完成后才会触发，这里才是重新初始化 canvas 的最佳时机
+  // 避免设备还在转中就拿尺寸，导致画布拉伸变形
+  onResize(res) {
+    const orientation = res && res.size && res.size.windowWidth > res.size.windowHeight
+      ? 'landscape'
+      : 'portrait';
+    console.log('[onResize] 新朝向 →', orientation, res && res.size);
+    // 在签名阶段下，任何一次尺寸变化都重新初始化画布，以匹配新的宽高
+    if (this.data.stage === 'signature') {
+      // 让出一帧等 layout 换算完成再拿尺寸
+      wx.nextTick(() => this.initSignatureCanvas());
+    }
+  },
+
+  // 设置设备朝向：portrait | landscape
+  // 封装为一个带容错的工具方法，以防：
+  //  - 老版本基础库未提供 wx.setDeviceOrientation（< 2.27.3）
+  //  - 某些机型上 setDeviceOrientation 报 fail （不应该阻断主流程）
+  // 设置设备/页面朝向：portrait | landscape
+  // 优先使用 wx.setPageOrientation（基础库 2.27.3+，比 setDeviceOrientation 更稳定）
+  // 老版本基础库降级使用 wx.setDeviceOrientation
+  // 注意：要让两者真正生效，app.json 需要配置 "resizable": true
+  setOrientation(value) {
+    const hasPageOrient = typeof wx.setPageOrientation === 'function';
+    const hasDeviceOrient = typeof wx.setDeviceOrientation === 'function';
+    console.log('[setOrientation] 调用 →', value, {
+      hasPageOrient,
+      hasDeviceOrient
+    });
+
+    if (!hasPageOrient && !hasDeviceOrient) {
+      console.warn('[setOrientation] 当前基础库不支持横竖屏切换 API，跳过');
+      return;
+    }
+
+    const apiName = hasPageOrient ? 'setPageOrientation' : 'setDeviceOrientation';
+    try {
+      wx[apiName]({
+        value, // 兼容旧的 setDeviceOrientation
+        orientation: value, // 兼容 setPageOrientation
+        success: () => console.log(`[setOrientation] (${apiName}) 已切换为`, value),
+        fail: (err) => {
+          console.warn(`[setOrientation] (${apiName}) 切换失败 →`, value, err);
+          // setPageOrientation 失败时，再尝试用 setDeviceOrientation 兜一次
+          if (apiName === 'setPageOrientation' && hasDeviceOrient) {
+            wx.setDeviceOrientation({
+              value,
+              orientation: value,
+              success: () => console.log('[setOrientation] (fallback setDeviceOrientation) 已切换为', value),
+              fail: (e2) => console.warn('[setOrientation] fallback 也失败 →', e2)
+            });
+          }
+        }
+      });
+    } catch (err) {
+      console.warn('[setOrientation] 调用异常 →', value, err);
+    }
   },
 
   // ========== 协议相关 ==========
 
-  // 加载协议数据
+  // 加载协议数据（接口现已直接返回 HTML 富文本，无需再下载 PDF）
   async loadContract() {
     wx.showLoading({ title: '加载协议中...' });
     try {
@@ -76,21 +146,26 @@ Page({
       wx.hideLoading();
       if (data.code === 200 && data.data) {
         const contract = data.data;
-        const fileUrl = contract.filePath.startsWith('http')
-          ? contract.filePath
-          : getApiBase() + contract.filePath;
+        // 后端返回的协议正文为 HTML 富文本，存放在 content 字段
+        const rawContent = contract.content || '';
 
         this.setData({
           contractData: contract,
-          pdfUrl: fileUrl,
+          contractContent: rawContent,
+          contractLoaded: true,
+          contractScrolledToBottom: false,
           contractCountdown: 10,
-          contractCanConfirm: false,
-          hasOpenedContract: false,
-          localPdfPath: ''
+          contractCanConfirm: false
         });
 
-        // 预下载协议 PDF（提升点击查看时的响应速度）
-        this.preDownloadPDF(fileUrl);
+        // 协议加载完成 → 立即启动 10s 阅读倒计时
+        this.startContractCountdown();
+
+        // 协议加载完成后，下一帧检查是否需要滚动
+        // 若内容本身不足以撑满容器（无需滚动），直接视为「已滑到底」
+        wx.nextTick(() => {
+          this.checkContentScrollable();
+        });
       } else {
         wx.showToast({ title: '暂无生效协议', icon: 'none' });
       }
@@ -101,110 +176,65 @@ Page({
     }
   },
 
-  // 预下载 PDF 文件到本地（静默）
-  preDownloadPDF(url) {
-    if (!url) return;
-    wx.downloadFile({
-      url,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          this.setData({ localPdfPath: res.tempFilePath });
-          console.log('PDF 预下载完成:', res.tempFilePath);
-        } else {
-          console.warn('PDF 预下载失败，statusCode:', res.statusCode);
-        }
-      },
-      fail: (err) => {
-        console.warn('PDF 预下载失败:', err);
+  // 检查协议正文是否需要滚动；若内容高度 ≤ 容器高度则视为已读到底
+  checkContentScrollable() {
+    const query = wx.createSelectorQuery().in(this);
+    query.select('.contract-scroll-view').boundingClientRect();
+    query.select('.contract-rich-text').boundingClientRect();
+    query.exec((res) => {
+      const wrapperRect = res && res[0];
+      const contentRect = res && res[1];
+      if (!wrapperRect || !contentRect) return;
+      // 容器高度上的容差，避免边界值导致永远点不了按钮
+      const tolerance = 4;
+      if (contentRect.height <= wrapperRect.height + tolerance) {
+        this.markScrolledToBottom();
       }
     });
   },
 
-  // 点击"查看协议"按钮 → 调起系统/微信内置文件查看器
-  handleViewContract() {
-    const { localPdfPath, pdfUrl, downloadingContract } = this.data;
-    if (downloadingContract) return;
-
-    if (localPdfPath) {
-      this.openPDF(localPdfPath);
-      return;
-    }
-
-    if (!pdfUrl) {
-      wx.showToast({ title: '协议链接为空', icon: 'none' });
-      return;
-    }
-
-    this.setData({ downloadingContract: true });
-    wx.showLoading({ title: '加载协议中...' });
-    wx.downloadFile({
-      url: pdfUrl,
-      success: (res) => {
-        wx.hideLoading();
-        this.setData({ downloadingContract: false });
-        if (res.statusCode === 200) {
-          this.setData({ localPdfPath: res.tempFilePath });
-          this.openPDF(res.tempFilePath);
-        } else {
-          wx.showToast({ title: '下载协议失败', icon: 'none' });
-        }
-      },
-      fail: (err) => {
-        wx.hideLoading();
-        this.setData({ downloadingContract: false });
-        console.error('下载协议失败:', err);
-        wx.showToast({ title: '下载协议失败', icon: 'none' });
-      }
-    });
+  // 协议正文滚动到底部 → 标记「滑到底」并尝试解锁确认按钮
+  handleContentScrollToLower() {
+    this.markScrolledToBottom();
   },
 
-  // 调用 wx.openDocument 打开 PDF
-  openPDF(filePath) {
-    wx.openDocument({
-      filePath,
-      fileType: 'pdf',
-      showMenu: true,
-      success: () => {
-        console.log('打开 PDF 成功');
-        // 用户已查看过协议 → 启动倒计时
-        if (!this.data.hasOpenedContract) {
-          this.setData({ hasOpenedContract: true });
-          this.startContractCountdown();
-        }
-      },
-      fail: (err) => {
-        console.error('打开 PDF 失败:', err);
-        wx.showModal({
-          title: '提示',
-          content: '无法打开协议文件，请稍后重试',
-          showCancel: false
-        });
-      }
-    });
+  // 标记「滑到底」状态，并刷新合并的 contractCanConfirm
+  markScrolledToBottom() {
+    if (this.data.contractScrolledToBottom) return;
+    this.setData({ contractScrolledToBottom: true });
+    this.recomputeCanConfirm();
   },
 
-  // 倒计时
+  // 启动 10s 阅读倒计时；倒计时结束后再尝试解锁确认按钮
   startContractCountdown() {
     this.clearContractCountdown();
     const timer = setInterval(() => {
-      const newVal = this.data.contractCountdown - 1;
-      if (newVal <= 0) {
+      const next = this.data.contractCountdown - 1;
+      if (next <= 0) {
         this.clearContractCountdown();
-        this.setData({
-          contractCountdown: 0,
-          contractCanConfirm: true
-        });
+        this.setData({ contractCountdown: 0 });
+        this.recomputeCanConfirm();
       } else {
-        this.setData({ contractCountdown: newVal });
+        this.setData({ contractCountdown: next });
       }
     }, 1000);
     this.data.contractCountdownTimer = timer;
   },
 
+  // 清理倒计时 timer（页面卸载、确认进入下一阶段时调用）
   clearContractCountdown() {
     if (this.data.contractCountdownTimer) {
       clearInterval(this.data.contractCountdownTimer);
       this.data.contractCountdownTimer = null;
+    }
+  },
+
+  // 综合「滑到底」与「倒计时已结束」两个条件，更新 contractCanConfirm
+  recomputeCanConfirm() {
+    const { contractScrolledToBottom, contractCountdown, contractCanConfirm } = this.data;
+    const canConfirm = contractScrolledToBottom && contractCountdown <= 0;
+    if (canConfirm !== contractCanConfirm) {
+      this.setData({ contractCanConfirm: canConfirm });
     }
   },
 
@@ -213,11 +243,57 @@ Page({
     wx.navigateBack();
   },
 
-  // 确认协议，进入签名阶段
+  // 确认协议，进入设备信息填写阶段
   handleContractConfirm() {
     if (!this.data.contractCanConfirm) return;
     this.clearContractCountdown();
+    this.setData({ stage: 'device-info' });
+  },
+
+  // ========== 设备信息阶段 ==========
+
+  // 表单字段变更（多个字段复用一个处理器，通过 data-field 区分）
+  handleDeviceFieldChange(e) {
+    const field = e.currentTarget.dataset.field;
+    const value = (e.detail || '').toString().trim();
+    if (!field) return;
+    this.setData({
+      [`deviceForm.${field}`]: value
+    });
+  },
+
+  // 返回查看协议阶段
+  handleBackToContract() {
+    this.setData({ stage: 'contract' });
+  },
+
+  // 校验设备表单 → 返回错误提示（空串表示通过）
+  validateDeviceForm() {
+    const { imei, sn, phoneModel } = this.data.deviceForm;
+    if (!phoneModel) return '请填写手机型号';
+    if (phoneModel.length > 50) return '手机型号不能超过 50 个字符';
+    if (!imei && !sn) return 'IMEI 与 SN 请至少填写一项';
+    if (imei) {
+      // IMEI：14-17 位纯数字（兼容 IMEI/MEID/IMEISV）
+      if (!/^\d{14,17}$/.test(imei)) return 'IMEI 格式不正确（14-17 位纯数字）';
+    }
+    if (sn) {
+      // SN：6-32 位字母数字（不区分大小写）
+      if (!/^[A-Za-z0-9]{6,32}$/.test(sn)) return 'SN 格式不正确（6-32 位字母数字）';
+    }
+    return '';
+  },
+
+  // 设备信息 「下一步」→ 进入签名阶段（并切换为横屏）
+  handleDeviceInfoNext() {
+    const errMsg = this.validateDeviceForm();
+    if (errMsg) {
+      wx.showToast({ title: errMsg, icon: 'none' });
+      return;
+    }
     this.setData({ stage: 'signature' });
+    // 取消横屏，保持竖屏签名
+    // this.setOrientation('landscape');
     setTimeout(() => {
       this.initSignatureCanvas();
     }, 300);
@@ -296,10 +372,11 @@ Page({
     this.setData({ hasSigned: false });
   },
 
-  // 取消签名，返回协议阶段
+  // 取消签名，返回设备信息填写阶段（保留已填写的内容）并恢复竖屏
   handleCancelSignature() {
+    // this.setOrientation('portrait');
     this.setData({
-      stage: 'contract',
+      stage: 'device-info',
       hasSigned: false,
       signedImagePath: ''
     });
@@ -319,6 +396,8 @@ Page({
     wx.showLoading({ title: '保存签名中...' });
 
     try {
+      // 导出签名图片临时文件路径，作为 signatureFile 直接 uploadFile 上送给后端
+      // 后端会保存图片并自行合成最终协议，前端不再做 HTML 字段回填
       const tempFilePath = await new Promise((resolve, reject) => {
         wx.canvasToTempFilePath({
           canvas: this.signatureCanvas,
@@ -340,7 +419,22 @@ Page({
     }
   },
 
+  // 将本地临时文件读为 base64（保留作为兜底工具，当前主流程不使用）
+  fileToBase64(filePath) {
+    return new Promise((resolve, reject) => {
+      const fs = wx.getFileSystemManager();
+      fs.readFile({
+        filePath,
+        encoding: 'base64',
+        success: (res) => resolve(res.data),
+        fail: (err) => reject(err)
+      });
+    });
+  },
+
   // 上传签名图片 + 提交协议签订（multipart/form-data，只调一次接口）
+  // 注意：小程序前端不再做协议 HTML 字段回填，contractContent 直接原样上送，
+  //       后端拿到原始富文本 + signatureModel/Imei/Date/File 自行合成最终协议
   async uploadSignature(tempFilePath) {
     const { contractData, orderId } = this.data;
     if (!contractData) {
@@ -352,15 +446,31 @@ Page({
     wx.showLoading({ title: '提交签订中...' });
 
     const uploadUrl = buildApiUrl(API_ENDPOINTS.signContract);
-    // 后端接口字段：
+    const { imei, sn, phoneModel } = this.data.deviceForm;
+    const { contractContent } = this.data;
+    // 协议中「设备 IMEI」一行后端要展示哪个值：IMEI 优先，否则 SN（用户二选一填写）
+    const imeiOrSn = imei || sn;
+    // 后端 signature_date 列为 DATE 类型，仅需 yyyy-MM-dd
+    const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+    const now = new Date();
+    const signatureDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    // 后端接口字段（前端上传使用驼峰，后端变量存储为蛇形）：
     //   - signatureFile: 签名图片文件（MultipartFile）
-    //   - signaturePath:  协议文件路径（String）
-    //   - id / contractId / contractPath: 业务字段
+    //   - id / contractId: 业务字段
+    //   - contractPath / signaturePath: 兼容旧接口的兜底字段
+    //   - contractContent  → contract_content（原始协议富文本，原样回传，不做替换）
+    //   - signatureModel   → signature_model（协议签订设备型号）
+    //   - signatureImei    → signature_imei（协议签订设备 IMEI 或 SN）
+    //   - signatureDate    → signature_date（协议签订日期，yyyy-MM-dd）
     const formData = {
       id: orderId || '',
       contractId: contractData.id || '',
       contractPath: contractData.filePath || '',
-      signaturePath: contractData.filePath || ''
+      signaturePath: contractData.filePath || '',
+      contractContent: contractContent || '',
+      signatureModel: phoneModel || '',
+      signatureImei: imeiOrSn || '',
+      signatureDate
     };
 
     console.log('[signContract] 准备上传 →', {
@@ -403,6 +513,8 @@ Page({
         wx.hideLoading();
         this.setData({ uploadingSignature: false });
         wx.showToast({ title: '签署成功', icon: 'success' });
+        // 提交成功后跳转上一页前先恢复竖屏，避免上一页以横屏状态展示
+        // this.setOrientation('portrait');
         setTimeout(() => {
           wx.navigateBack();
         }, 1500);

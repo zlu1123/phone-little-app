@@ -1,9 +1,12 @@
 {
   "navigationStyle": "custom",
   "navigationBarTitleText": "协议签署",
+  "pageOrientation": "auto",
   "usingComponents": {
     "van-button": "@vant/weapp/button/index",
     "van-icon": "@vant/weapp/icon/index",
-    "van-loading": "@vant/weapp/loading/index"
+    "van-loading": "@vant/weapp/loading/index",
+    "van-field": "@vant/weapp/field/index",
+    "van-cell-group": "@vant/weapp/cell-group/index"
   }
 }

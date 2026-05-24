@@ -132,5 +132,12 @@ Page({
         }
       }
     });
+  },
+
+  // 【测试用】新签协议入口（orderId=39），上线前请删除
+  handleTestSignContract() {
+    wx.navigateTo({
+      url: '/pages/contract-sign/contract-sign?orderId=39'
+    });
   }
 });
