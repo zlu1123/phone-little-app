@@ -1,4 +1,4 @@
-<van-tabbar active="{{ active }}" bind:change="onChange" active-color="#1989fa" inactive-color="#7d7e80">
+<van-tabbar wx:if="{{ !isHidden }}" active="{{ active }}" bind:change="onChange" active-color="#1989fa" inactive-color="#7d7e80">
   <van-tabbar-item wx:for="{{ list }}" wx:key="index" icon="{{ item.icon }}">
     {{ item.text }}
   </van-tabbar-item>

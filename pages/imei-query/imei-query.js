@@ -637,11 +637,17 @@ Page({
   // 显示手机型号选择器
   onShowModelPicker() {
     this.setData({ showModelPicker: true });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ isHidden: true });
+    }
   },
 
   // 关闭手机型号选择器
   onCloseModelPicker() {
     this.setData({ showModelPicker: false });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ isHidden: false });
+    }
   },
 
   // 选择手机型号
@@ -652,6 +658,9 @@ Page({
       'formData.typeCode': value,
       showModelPicker: false
     });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ isHidden: false });
+    }
   },
 
   // 查询保修信息

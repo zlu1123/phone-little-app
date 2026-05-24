@@ -1,6 +1,7 @@
 Component({
   data: {
     active: 0,
+    isHidden: false,
     list: [
       {
         pagePath: '/pages/imei-query/imei-query',

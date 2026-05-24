@@ -33,6 +33,7 @@
             is-link
             required
             bind:click-input="onShowModelPicker"
+            bind:click="onShowModelPicker"
             disabled="{{ isRecognizing || activeStep >= 2 }}"
           />
         </van-cell-group>
@@ -227,5 +228,20 @@
       </view>
     </view>
   </view>
-
+<!-- 手机型号选择弹窗 -->
+  <van-popup
+    show="{{ showModelPicker }}"
+    position="bottom"
+    bind:close="onCloseModelPicker"
+    round
+  >
+    <van-picker
+      show-toolbar
+      title="选择手机型号"
+      columns="{{ modelOptions }}"
+      value-key="name"
+      bind:cancel="onCloseModelPicker"
+      bind:confirm="onSelectModel"
+    />
+  </van-popup>
 </view>
