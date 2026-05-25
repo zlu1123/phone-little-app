@@ -147,7 +147,27 @@ Page({
       if (data.code === 200 && data.data) {
         const contract = data.data;
         // 后端返回的协议正文为 HTML 富文本，存放在 content 字段
-        const rawContent = contract.content || '';
+        let rawContent = contract.content || '';
+
+        // ---- 处理协议 HTML，使其在 rich-text 中能正确呈现表格 ----
+        // 1) 剥离 docx 转 HTML 时常见的固定宽度/高度属性，避免在小屏内列宽失衡导致一列只能塞 1~2 个字
+        rawContent = rawContent
+          // 移除 <table>/<td>/<th>/<col> 上的 width、height 属性（数字或百分比都干掉）
+          .replace(/<(table|td|th|tr|col|colgroup)([^>]*?)\s(width|height)=["'][^"']*["']/gi, '<$1$2')
+          // 移除内联 style 中的 width/height（保留其它 style 暂不实现，简单粗暴去掉整段 style 上的宽高声明）
+          .replace(/style=("|')([^"']*)\1/gi, (match, quote, styleStr) => {
+            const cleaned = styleStr
+              .replace(/(^|;)\s*(width|height|min-width|max-width|min-height|max-height)\s*:\s*[^;]+/gi, '')
+              .replace(/^;\s*/, '')
+              .trim();
+            return cleaned ? `style=${quote}${cleaned}${quote}` : '';
+          });
+
+        // 2) 注入统一的表格样式：按内容真实宽度展示 + 单线边框 + 中英文混排自然换行
+        //    word-break: normal 让中文按字符可换行（中文自然行为），英文按词换行；避免某列被超长中文撑爆
+        rawContent = rawContent.replace(/<table\b/gi, '<table cellspacing="0" cellpadding="0" style="border-collapse: collapse; border-spacing: 0; margin: 10px 0; font-size: 14px;"');
+        rawContent = rawContent.replace(/<th\b/gi, '<th style="border: 1px solid #323233; padding: 6px 10px; background-color: #f5f5f5; text-align: center; vertical-align: middle; word-break: normal; overflow-wrap: break-word; white-space: normal; min-width: 48px; max-width: 140px; line-height: 1.6; box-sizing: border-box;"');
+        rawContent = rawContent.replace(/<td\b/gi, '<td style="border: 1px solid #323233; padding: 6px 10px; text-align: center; vertical-align: middle; word-break: normal; overflow-wrap: break-word; white-space: normal; min-width: 48px; max-width: 140px; line-height: 1.6; box-sizing: border-box;"');
 
         this.setData({
           contractData: contract,

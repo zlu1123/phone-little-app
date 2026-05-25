@@ -210,36 +210,47 @@
   font-size: 26rpx;
 }
 
-/* 表格：小屏下采用「可横向滚动 + 强制断词」双保险，避免表格表单（如设备型号/IMEI 填空行）错位 */
+/* 表格：小屏下采用「可横向滚动」策略，按内容真实宽度展示，避免文字被压成一字一行 */
 .contract-rich-text table {
-  /* 不设 table-layout:fixed，避免下划线填空被压缩 */
-  width: 100%;
-  max-width: 100%;
+  /* 让表格按真实内容宽度撑开（auto），超出屏幕时由外层 block 容器横向滚动展示 */
   border-collapse: collapse;
+  border-spacing: 0;
   margin: 16rpx 0;
   font-size: 26rpx;
-  /* 如果表格本身超宽，允许内部横滚不冲破外层 */
+  table-layout: auto;
+  /* 关键：display:block + overflow-x:auto 让表格在小屏下可横滚 */
   display: block;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .contract-rich-text tbody,
-.contract-rich-text thead,
-.contract-rich-text tr {
+.contract-rich-text thead {
+  display: table;
   width: 100%;
+}
+
+.contract-rich-text tr {
+  /* 保持表格行的默认行为，避免被外层 block 影响 */
 }
 
 .contract-rich-text th,
 .contract-rich-text td {
-  border: 1rpx solid #ebedf0;
+  border: 1rpx solid #323233;
   padding: 12rpx 16rpx;
-  text-align: left;
-  vertical-align: top;
-  /* 下划线填空不会被作为一个完整词裂顶单元格，而是允许任意位置换行 */
-  word-break: break-all;
-  overflow-wrap: anywhere;
+  text-align: center;
+  vertical-align: middle;
+  /* 中文采用默认换行策略（任意字符间可换行），英文按词换行，
+     避免某一列被过长中文撑得太宽从而挤出屏外 */
+  word-break: normal;
+  overflow-wrap: break-word;
   white-space: normal;
+  /* 限制单个单元格最大宽度，避免某一列独压整张表格 */
+  min-width: 96rpx;
+  max-width: 280rpx;
+  line-height: 1.6;
+  box-sizing: border-box;
 }
 
 .contract-rich-text th {
