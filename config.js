@@ -23,8 +23,8 @@ const getEnvVersion = () => {
  */
 const API_BASE_BY_ENV = {
   // develop: 'http://124.222.38.87:8090',
-  // develop: 'https://www.ybxz.top/prod-api/',
-  develop: 'http://43.164.129.96:8090',
+  develop: 'https://www.ybxz.top/prod-api/',
+  // develop: 'http://43.164.129.96:8090',
   trial: 'https://www.ybxz.top/prod-api/',
   release: 'https://www.ybxz.top/prod-api/'
 };

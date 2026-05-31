@@ -5,7 +5,7 @@ const {
   getApiBase,
   isWechatOcrEnabled
 } = require('../../config');
-const { request, uploadFile } = require('../../utils/request');
+const { request, uploadFile, handleUnauthorized } = require('../../utils/request');
 
 Page({
   data: {
@@ -52,7 +52,9 @@ Page({
     this.setData({ apiBase: getApiBase() });
     // 识别环境：develop=开发版 / trial=体验版 时显示调试入口
     this.detectDevEnv();
-    this.checkLoginStatus();
+    // 登录状态检查：若已过期，由 handleUnauthorized 统一接管跳转，本次 onShow 直接返回，
+    // 避免与请求拦截器(401)双重跳转，导致登录页被加载多次
+    if (this.checkLoginStatus()) return;
     // 获取手机型号列表
     this.fetchPhoneTypeList();
     // 用户从公众号 webview 页面返回后，主动弹出兑底引导
@@ -137,9 +139,10 @@ Page({
   },
 
   // 检查登录状态
+  // 返回值：true 表示已过期已交由 handleUnauthorized 统一处理，调用方应中断后续逻辑；false 表示登录态正常
   checkLoginStatus() {
     const isGuest = wx.getStorageSync('isGuest');
-    if (isGuest) return; // 游客模式不拦截
+    if (isGuest) return false; // 游客模式不拦截
 
     const token = wx.getStorageSync('token');
     const tokenExpireTime = wx.getStorageSync('tokenExpireTime');
@@ -156,23 +159,12 @@ Page({
       !tokenExpireTime ||
       now > tokenExpireTime
     ) {
-      // 清除可能过期的状态
-      wx.removeStorageSync('token');
-      wx.removeStorageSync('tokenExpireTime');
-      wx.removeStorageSync('isLoggedIn');
-      wx.removeStorageSync('userInfo');
-
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-
-      setTimeout(() => {
-        wx.navigateTo({
-          url: '/pages/login/login'
-        });
-      }, 1000);
+      // 复用统一的登录过期处理：内部有去重标志，整个会话只会触发一次 modal + reLaunch
+      // 由其内部统一执行清缓存、跳转登录页等操作，避免与请求拦截器双重跳转
+      handleUnauthorized();
+      return true;
     }
+    return false;
   },
 
   // 删除图片回调

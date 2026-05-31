@@ -3,31 +3,47 @@
  * 封装 wx.request 和 wx.uploadFile，统一处理 401 登录过期
  */
 
-// 防止重复弹窗和跳转的标志
-let isShowingLoginExpired = false;
+// 是否正在跳转登录页：一旦置 true，本次会话内不再触发重复弹窗/跳转
+// 仅在登录页 onLoad 时通过 resetLoginRedirectFlag 重置
+let isRedirectingToLogin = false;
+
+/**
+ * 重置"正在跳转登录页"标志
+ * 由登录页 onLoad 调用，确保下次 token 过期还能正常拦截
+ */
+const resetLoginRedirectFlag = () => {
+  isRedirectingToLogin = false;
+};
 
 /**
  * 处理 401 登录过期：提示用户 → 清理缓存 → 跳转登录页
+ * 整个 App 会话内只会触发一次，直到进入登录页后才允许下一次
  */
 const handleUnauthorized = () => {
-  if (isShowingLoginExpired) return;
-  isShowingLoginExpired = true;
+  if (isRedirectingToLogin) return;
+  isRedirectingToLogin = true;
+
+  // 关闭可能存在的 loading/toast，避免覆盖 modal
+  try { wx.hideLoading(); } catch (_e) { /* ignore */ }
+  try { wx.hideToast(); } catch (_e) { /* ignore */ }
+
+  // 立即清理本地缓存（token、用户信息等），防止后续逻辑读到过期数据
+  try { wx.clearStorageSync(); } catch (_e) { /* ignore */ }
 
   wx.showModal({
     title: '登录过期',
     content: '当前登录状态已过期，请重新登录',
     showCancel: false,
     confirmText: '重新登录',
-    complete: () => {
-      // 清理本地缓存（token、用户信息等）
-      wx.clearStorageSync();
-      // 跳转到登录页
+    success: () => {
       wx.reLaunch({
-        url: '/pages/login/login',
-        complete: () => {
-          isShowingLoginExpired = false;
-        }
+        url: '/pages/login/login'
+        // 不在此重置 isRedirectingToLogin，由登录页 onLoad 重置
       });
+    },
+    fail: () => {
+      // modal 异常时也强制跳转，避免卡死
+      wx.reLaunch({ url: '/pages/login/login' });
     }
   });
 };
@@ -75,6 +91,11 @@ const checkUnauthorized = (res) => {
  * @returns {Promise}
  */
 const request = (options) => {
+  // 已在跳转登录页过程中，直接拒绝后续请求，避免触发更多 401
+  if (isRedirectingToLogin) {
+    return Promise.reject(new Error('登录状态已过期'));
+  }
+
   const originalSuccess = options.success;
   const originalFail = options.fail;
 
@@ -113,6 +134,11 @@ const request = (options) => {
  * @returns {Promise}
  */
 const uploadFile = (options) => {
+  // 已在跳转登录页过程中，直接拒绝后续请求
+  if (isRedirectingToLogin) {
+    return Promise.reject(new Error('登录状态已过期'));
+  }
+
   const originalSuccess = options.success;
   const originalFail = options.fail;
 
@@ -148,5 +174,6 @@ module.exports = {
   request,
   uploadFile,
   checkUnauthorized,
-  handleUnauthorized
+  handleUnauthorized,
+  resetLoginRedirectFlag
 };

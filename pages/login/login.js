@@ -1,6 +1,6 @@
 const app = getApp();
 const { API_ENDPOINTS, buildApiUrl } = require('../../config');
-const { request } = require('../../utils/request');
+const { request, resetLoginRedirectFlag } = require('../../utils/request');
 
 Page({
   data: {
@@ -19,6 +19,10 @@ Page({
   },
 
   onLoad() {
+    // 重置“正在跳转登录页”标志：
+    // 允许下次 token 过期时请求拦截器能再次触发跳转逻辑
+    resetLoginRedirectFlag();
+
     // 获取状态栏高度
     const systemInfo = wx.getSystemInfoSync();
     this.setData({
