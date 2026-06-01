@@ -651,11 +651,26 @@ Page({
   },
 
   // 选择手机型号
+  // van-picker 的 confirm 事件回调：e.detail = { value: <整行对象>, index: <下标> }
+  // 这里 value 实际是 modelOptions[index]，形如 { name, value }，需再次取字段
   onSelectModel(e) {
-    const { name, value } = e.detail;
+    const { value: selected, index } = e.detail || {};
+    // 优先使用回调里的整行对象；兜底用 index 从 modelOptions 取，避免 undefined
+    const item = (selected && typeof selected === 'object')
+      ? selected
+      : (this.data.modelOptions[index] || {});
+
+    if (!item || !item.value) {
+      this.setData({ showModelPicker: false });
+      if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+        this.getTabBar().setData({ isHidden: false });
+      }
+      return;
+    }
+
     this.setData({
-      selectedModelName: name,
-      'formData.typeCode': value,
+      selectedModelName: item.name,
+      'formData.typeCode': item.value,
       showModelPicker: false
     });
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {

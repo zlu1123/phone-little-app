@@ -92,32 +92,40 @@
         <view class="subtitle">系统已自动识别，如有误请手动修改</view>
       </view>
 
-      <van-cell-group inset class="form-group">
+      <van-cell-group inset class="form-group code-form-group">
         <van-field
           value="{{ formData.sn }}"
           label="序列号"
-          title-width="5em"
+          title-width="4em"
           placeholder="请输入或识别序列号"
-          left-icon="qr"
+          maxlength="20"
           clearable="{{true}}"
+          custom-class="code-field"
+          input-class="code-field-input"
           bind:change="onSnChange"
         />
         <van-field
           value="{{ formData.imei }}"
           label="IMEI1"
-          title-width="5em"
+          title-width="4em"
           placeholder="请输入或识别IMEI1"
-          left-icon="scan"
+          type="number"
+          maxlength="15"
           clearable="{{true}}"
+          custom-class="code-field"
+          input-class="code-field-input"
           bind:change="onImeiChange"
         />
         <van-field
           value="{{ formData.imei2 }}"
           label="IMEI2"
-          title-width="5em"
+          title-width="4em"
           placeholder="请输入或识别IMEI2"
-          left-icon="scan"
+          type="number"
+          maxlength="15"
           clearable="{{true}}"
+          custom-class="code-field"
+          input-class="code-field-input"
           bind:change="onImei2Change"
         />
       </van-cell-group>

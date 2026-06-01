@@ -190,6 +190,35 @@ page {
   margin-bottom: 32rpx;
 }
 
+/* 序列号 / IMEI 输入框：长字符串展示优化
+ * 1. 标签 title-width 已收窄到 4em，再缩小内边距给输入区让位
+ * 2. 输入框内字号下调 + 字距收紧 + 单行不截断，保证 15~20 位字符完整可见
+ * 3. 当展示不下时由原生 input 自身横向滚动呈现，而不是被外层裁切
+ */
+.code-form-group .van-cell {
+  padding-right: 12rpx !important;
+}
+
+.code-field {
+  align-items: center !important;
+}
+
+.code-field .van-field__label {
+  font-size: 28rpx !important;
+  color: #323233 !important;
+}
+
+.code-field-input {
+  font-size: 28rpx !important;
+  font-family:
+    -apple-system, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', Arial,
+    sans-serif !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+  text-overflow: clip !important;
+  overflow: hidden !important;
+}
+
 .action-btn {
   margin-top: 40rpx;
 }
