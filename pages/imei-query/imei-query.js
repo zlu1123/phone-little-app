@@ -5,6 +5,7 @@ const {
   getApiBase,
   isWechatOcrEnabled
 } = require('../../config');
+const { parseDateTime } = require('../../utils/date');
 const { request, uploadFile, handleUnauthorized } = require('../../utils/request');
 
 Page({
@@ -753,15 +754,22 @@ Page({
 
         if (resultData.activated) {
           if (coverageDate) {
-            const coverageTime = new Date(coverageDate).getTime();
-            // 使用系统返回的时间或者当前时间
+            // 使用 iOS 兼容的解析方式，避免 "yyyy-MM-dd HH:mm:ss" 在 iOS 下解析为 NaN
+            const coverageTime = parseDateTime(coverageDate);
+            // 优先使用后端返回的系统时间，无则回退到本机时间
             const sysTime = resultData.sysTime
-              ? new Date(resultData.sysTime).getTime()
-              : new Date().getTime();
-            console.log("🚀 ~ sysTime:", sysTime)
-            // 如果质保时间晚于系统时间，则未过保，可以跳转亚丁屏卫
-            isExpired = coverageTime <= sysTime;
-            warrantyStatus = isExpired ? '已过保' : '保修中';
+              ? parseDateTime(resultData.sysTime)
+              : Date.now();
+            console.log("🚀 ~ sysTime:", sysTime, "coverageTime:", coverageTime);
+            // 防御：任一时间解析失败时，按 "未过保" 处理，避免 NaN 比较导致误判
+            if (Number.isNaN(coverageTime) || Number.isNaN(sysTime)) {
+              isExpired = false;
+              warrantyStatus = '保修中';
+            } else {
+              // 如果质保时间晚于系统时间，则未过保，可以跳转亚丁屏卫
+              isExpired = coverageTime <= sysTime;
+              warrantyStatus = isExpired ? '已过保' : '保修中';
+            }
           } else {
             warrantyStatus = '已激活';
           }

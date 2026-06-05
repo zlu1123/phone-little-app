@@ -1,4 +1,5 @@
 const { API_ENDPOINTS, buildApiUrl, getApiBase } = require('../../config');
+const { parseDateTime } = require('../../utils/date');
 const { request } = require('../../utils/request');
 
 Page({
@@ -78,14 +79,21 @@ Page({
 
     if (item.activated) {
       if (item.coverage) {
-        const coverageTime = new Date(item.coverage).getTime();
-        // 使用系统返回的时间或者当前时间
+        // 使用 iOS 兼容的解析方式，避免 "yyyy-MM-dd HH:mm:ss" 在 iOS 下解析为 NaN
+        const coverageTime = parseDateTime(item.coverage);
+        // 优先使用后端返回的系统时间，无则回退到本机时间
         const sysTime = item.sysTime
-          ? new Date(item.sysTime).getTime()
-          : new Date().getTime();
-        // 如果质保时间晚于系统时间，则未过保
-        isExpired = coverageTime <= sysTime;
-        warrantyStatus = isExpired ? '已过保' : '保修中';
+          ? parseDateTime(item.sysTime)
+          : Date.now();
+        // 防御：解析失败时按 "未过保" 处理，避免 NaN 比较导致误判
+        if (Number.isNaN(coverageTime) || Number.isNaN(sysTime)) {
+          isExpired = false;
+          warrantyStatus = '保修中';
+        } else {
+          // 如果质保时间晚于系统时间，则未过保
+          isExpired = coverageTime <= sysTime;
+          warrantyStatus = isExpired ? '已过保' : '保修中';
+        }
         // 操作时手机已激活（有 coverage 说明已激活）
         activatedAtQuery = true;
       } else {
@@ -96,16 +104,23 @@ Page({
     } else {
       // 未激活：通过 sysTime 和 coverage 对比确认
       if (item.sysTime && item.coverage) {
-        const coverageTime = new Date(item.coverage).getTime();
-        const sysTime = new Date(item.sysTime).getTime();
-        // 即使 activated 为 false，如果 sysTime 在 coverage 之前，说明当时可能已激活
-        activatedAtQuery = sysTime <= coverageTime;
-        if (activatedAtQuery) {
-          warrantyStatus = '保修中';
-          isExpired = false;
-        } else {
-          warrantyStatus = '已过保';
+        const coverageTime = parseDateTime(item.coverage);
+        const sysTime = parseDateTime(item.sysTime);
+        if (Number.isNaN(coverageTime) || Number.isNaN(sysTime)) {
+          // 解析失败时保持未激活的默认语义
+          warrantyStatus = '未激活';
           isExpired = true;
+          activatedAtQuery = false;
+        } else {
+          // 即使 activated 为 false，如果 sysTime 在 coverage 之前，说明当时可能已激活
+          activatedAtQuery = sysTime <= coverageTime;
+          if (activatedAtQuery) {
+            warrantyStatus = '保修中';
+            isExpired = false;
+          } else {
+            warrantyStatus = '已过保';
+            isExpired = true;
+          }
         }
       } else {
         warrantyStatus = '未激活';
