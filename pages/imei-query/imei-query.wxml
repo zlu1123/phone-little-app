@@ -262,10 +262,17 @@
     closeable
     close-icon="cross"
     custom-class="oa-modal"
+    lock-scroll="{{ true }}"
+    overlay="{{ true }}"
     bind:close="handleCloseOAModal"
     bind:click-overlay="handleCloseOAModal"
+    catch:touchmove="handleNoop"
   >
-    <view class="oa-modal__inner" catch:tap="handleNoop">
+    <view
+      class="oa-modal__inner"
+      catch:tap="handleNoop"
+      catch:touchmove="handleNoop"
+    >
       <view class="oa-modal__header">
         <view class="oa-modal__icon">
           <van-icon name="wechat" size="48" color="#07c160" />
