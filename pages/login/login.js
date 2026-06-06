@@ -9,7 +9,7 @@ Page({
     // 登录相关
     phone: '',
     password: '',
-    agreed: true,
+    agreed: false,
     showPhoneForm: true,
     isLoading: false,
     // 注册相关
