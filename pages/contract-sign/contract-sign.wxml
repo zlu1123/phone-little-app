@@ -75,7 +75,7 @@
     </view>
 
     <view class="device-info-header">
-      <view class="device-info-title">请填写回收设备信息</view>
+      <view class="device-info-title">请填写新设备信息</view>
       <view class="device-info-subtitle">IMEI 与 SN 至少填写一项，手机型号必填</view>
     </view>
 
