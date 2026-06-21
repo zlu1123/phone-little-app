@@ -35,15 +35,14 @@
   <view class="login-section">
     <view class="phone-form">
       <van-field
-        value="{{ phone }}"
-        type="number"
-        maxlength="11"
-        placeholder="请输入手机号"
+        value="{{ account }}"
+        maxlength="30"
+        placeholder="请输入手机号或用户名"
         border="{{ false }}"
-        bind:change="handlePhoneChange"
+        bind:change="handleAccountChange"
         class="input-field"
       >
-        <van-icon slot="left-icon" name="phone-o" size="18px" color="#969799" custom-style="margin-right: 16rpx;" />
+        <van-icon slot="left-icon" name="user-o" size="18px" color="#969799" custom-style="margin-right: 16rpx;" />
       </van-field>
 
       <van-field
@@ -63,7 +62,7 @@
         block
         round
         loading="{{ isLoading }}"
-        disabled="{{ !phone || !password || !agreed }}"
+        disabled="{{ !account || !password || !agreed }}"
         bind:click="handlePasswordLogin"
         class="submit-btn"
       >

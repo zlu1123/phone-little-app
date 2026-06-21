@@ -8,6 +8,137 @@
     z-index="{{100}}"
   ></van-nav-bar>
 
+  <!-- ========== 留资界面：未登记用户信息时显示 ========== -->
+  <view wx:if="{{ !leaveInfoCompleted }}" class="leave-info-container">
+    <view class="leave-info-card">
+      <!-- 头部插图 -->
+      <view class="leave-info-header">
+        <view class="leave-info-icon">
+          <van-icon name="user-o" size="56" color="#1989fa" />
+        </view>
+        <view class="leave-info-title">请先登记用户信息</view>
+        <view class="leave-info-subtitle">登记后即可使用保修查询服务</view>
+      </view>
+
+      <!-- 模式切换Tab -->
+      <view class="leave-mode-tabs">
+        <view
+          class="leave-mode-tab {{ showLeaveForm ? 'leave-mode-tab--active' : '' }}"
+          bind:tap="handleToggleLeaveMode"
+        >
+          <text>手动新增</text>
+        </view>
+        <view
+          class="leave-mode-tab {{ !showLeaveForm ? 'leave-mode-tab--active' : '' }}"
+          bind:tap="handleToggleLeaveMode"
+        >
+          <text>搜索选择</text>
+        </view>
+      </view>
+
+      <!-- 手动新增模式 -->
+      <view wx:if="{{ showLeaveForm }}" class="leave-form-section">
+        <van-cell-group inset>
+          <van-field
+            value="{{ leaveName }}"
+            label="姓名"
+            title-width="4em"
+            placeholder="请输入姓名"
+            maxlength="20"
+            clearable="{{true}}"
+            required
+            bind:change="handleLeaveNameChange"
+          />
+          <van-field
+            value="{{ leavePhoneNum }}"
+            label="手机号"
+            title-width="4em"
+            placeholder="请输入手机号"
+            type="number"
+            maxlength="11"
+            clearable="{{true}}"
+            required
+            bind:change="handleLeavePhoneNumChange"
+          />
+        </van-cell-group>
+
+        <view class="leave-submit-btn">
+          <van-button
+            round="{{true}}"
+            block="{{true}}"
+            type="primary"
+            loading="{{ isLeaveSubmitting }}"
+            loading-text="提交中..."
+            bind:click="handleLeaveInfoSubmit"
+            color="linear-gradient(to right, #1989fa, #0570db)"
+          >
+            确认登记
+          </van-button>
+        </view>
+      </view>
+
+      <!-- 搜索选择模式 -->
+      <view wx:else class="leave-search-section">
+        <view class="leave-search-bar">
+          <van-search
+            value="{{ leaveSearchContext }}"
+            placeholder="输入姓名或手机号搜索"
+            show-action
+            bind:change="handleLeaveSearchChange"
+            bind:search="handleLeaveSearch"
+          >
+            <view slot="action" bind:tap="handleLeaveSearch">
+              <text class="search-action-text">搜索</text>
+            </view>
+          </van-search>
+        </view>
+
+        <!-- 搜索结果列表 -->
+        <view wx:if="{{ isLeaveSearching }}" class="leave-list-loading">
+          <van-loading type="spinner" color="#1989fa" size="20px">搜索中...</van-loading>
+        </view>
+
+        <view wx:elif="{{ leaveUserList.length > 0 }}" class="leave-user-list">
+          <view
+            wx:for="{{ leaveUserList }}"
+            wx:key="*this"
+            class="leave-user-item"
+            data-index="{{ index }}"
+            bind:tap="handleSelectLeaveUser"
+            hover-class="leave-user-item--hover"
+          >
+            <view class="leave-user-avatar">
+              <van-icon name="user-o" size="24" color="#1989fa" />
+            </view>
+            <view class="leave-user-info">
+              <view class="leave-user-name">{{ item.name }}</view>
+              <view class="leave-user-phone">{{ item.phoneNum }}</view>
+            </view>
+            <van-icon name="arrow" size="16" color="#969799" />
+          </view>
+        </view>
+
+        <view wx:elif="{{ leaveUserList.length === 0 && leaveSearchContext }}" class="leave-list-empty">
+          <van-icon name="search" size="40" color="#c8c9cc" />
+          <view class="empty-text">暂无匹配用户，请尝试其他关键词</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 原有查询功能：留资完成后显示 ========== -->
+  <block wx:if="{{ leaveInfoCompleted }}">
+  <!-- 已登记用户信息提示条 -->
+  <view class="leave-info-bar">
+    <view class="leave-info-bar__left">
+      <van-icon name="user-o" size="16" color="#1989fa" custom-style="margin-right: 8rpx;" />
+      <text class="leave-info-bar__text">{{ leaveName }} {{ leavePhoneNum }}</text>
+    </view>
+    <view class="leave-info-bar__right" bind:tap="handleBackToLeaveInfo" hover-class="leave-info-bar__right--hover">
+      <text>切换</text>
+    </view>
+  </view>
+
   <!-- 步骤条 -->
   <view class="steps-wrapper">
     <van-steps steps="{{ steps }}" active="{{ activeStep }}" active-icon="success" active-color="#1989fa" />
@@ -297,4 +428,5 @@
       </view>
     </view>
   </van-popup>
+  </block>
 </view>

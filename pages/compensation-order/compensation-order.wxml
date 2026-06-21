@@ -1,0 +1,145 @@
+<view class="compensation-page">
+  <!-- 顶部导航栏 -->
+  <van-nav-bar
+    title="已签约待赔付订单"
+    fixed="{{true}}"
+    placeholder="{{true}}"
+    z-index="{{100}}"
+    left-arrow
+    bind:click-left="handleBack"
+  ></van-nav-bar>
+
+  <!-- ========== 初始入口：搜索入口按钮 ========== -->
+  <view wx:if="{{ viewState === 'entry' }}" class="entry-section">
+    <view class="entry-card">
+      <view class="entry-icon">
+        <van-icon name="gold-coin-o" size="56" color="#ee0a24" />
+      </view>
+      <view class="entry-title">已签约待赔付订单</view>
+      <view class="entry-subtitle">查询已签约订单并发起赔付</view>
+      <van-button
+        round="{{true}}"
+        block="{{true}}"
+        type="primary"
+        icon="search"
+        bind:click="handleGoSearch"
+        color="linear-gradient(to right, #1989fa, #0570db)"
+      >
+        搜索已签约订单
+      </van-button>
+    </view>
+  </view>
+
+  <!-- ========== 搜索表单 ========== -->
+  <view wx:elif="{{ viewState === 'search' }}" class="search-section">
+    <view class="card-section">
+      <view class="section-header">
+        <view class="title">搜索已签约订单</view>
+        <view class="subtitle">请输入至少一个查询条件</view>
+      </view>
+
+      <van-cell-group inset>
+        <van-field
+          value="{{ searchName }}"
+          label="姓名"
+          title-width="6em"
+          placeholder="输入留资人姓名"
+          maxlength="20"
+          clearable="{{true}}"
+          bind:change="handleNameChange"
+        />
+        <van-field
+          value="{{ searchPhoneNum }}"
+          label="手机号"
+          title-width="6em"
+          placeholder="输入留资人电话"
+          type="number"
+          maxlength="11"
+          clearable="{{true}}"
+          bind:change="handlePhoneNumChange"
+        />
+        <van-field
+          value="{{ searchImei }}"
+          label="签约IMEI"
+          title-width="6em"
+          placeholder="输入签约IMEI"
+          maxlength="20"
+          clearable="{{true}}"
+          bind:change="handleImeiChange"
+        />
+      </van-cell-group>
+
+      <view class="search-btn">
+        <van-button
+          round="{{true}}"
+          block="{{true}}"
+          type="primary"
+          loading="{{ isSearching }}"
+          loading-text="查询中..."
+          bind:click="handleSearch"
+          color="linear-gradient(to right, #1989fa, #0570db)"
+        >
+          查询
+        </van-button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 查询结果 ========== -->
+  <view wx:elif="{{ viewState === 'result' }}" class="result-section">
+    <!-- 搜索条件标签 -->
+    <view wx:if="{{ lastSearchLabel }}" class="search-tag">
+      <van-icon name="search" size="14" color="#1989fa" custom-style="margin-right: 8rpx; flex-shrink: 0;" />
+      <text class="search-tag__text">{{ lastSearchLabel }}</text>
+    </view>
+
+    <!-- 重新搜索 -->
+    <view class="re-search-bar">
+      <van-button size="small" round plain type="primary" icon="replay" bind:click="handleReSearch">
+        重新搜索
+      </van-button>
+    </view>
+
+    <!-- 结果列表 -->
+    <view wx:if="{{ orderList.length > 0 }}" class="order-list">
+      <view class="list-title">查询结果（{{ orderList.length }}条）</view>
+      <view
+        wx:for="{{ orderList }}"
+        wx:key="id"
+        class="order-item"
+      >
+        <view class="order-info">
+          <view class="order-name">{{ item.name }}</view>
+          <view class="order-detail">
+            <text class="detail-label">手机号：</text>
+            <text class="detail-value">{{ item.phoneNum }}</text>
+          </view>
+          <view wx:if="{{ item.signatureImei }}" class="order-detail">
+            <text class="detail-label">签约IMEI：</text>
+            <text class="detail-value">{{ item.signatureImei }}</text>
+          </view>
+        </view>
+        <view class="order-action">
+          <van-button
+            size="small"
+            round
+            type="danger"
+            loading="{{ isSubmitting }}"
+            loading-text="提交中"
+            data-index="{{ index }}"
+            bind:click="handleInsertCompensationOrder"
+            color="linear-gradient(to right, #ff976a, #ee0a24)"
+          >
+            发起赔付
+          </van-button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空态 -->
+    <view wx:else class="empty-state">
+      <van-icon name="search" size="48" color="#c8c9cc" />
+      <view class="empty-text">未找到匹配的签约订单</view>
+    </view>
+  </view>
+</view>

@@ -14,6 +14,17 @@ Page({
     activeStep: 0,
     steps: [{ text: '上传识别' }, { text: '确认信息' }, { text: '查询结果' }],
 
+    // 留资状态
+    leaveInfoCompleted: false,
+    leaveInfoId: '',
+    leaveName: '',
+    leavePhoneNum: '',
+    leaveSearchContext: '',
+    leaveUserList: [],
+    isLeaveSearching: false,
+    isLeaveSubmitting: false,
+    showLeaveForm: true,
+
     // OCR相关数据
     isRecognizing: false,
     pictureList: [],
@@ -53,6 +64,10 @@ Page({
     this.setData({ apiBase: getApiBase() });
     // 识别环境：develop=开发版 / trial=体验版 时显示调试入口
     this.detectDevEnv();
+    // 检查是否已完成留资
+    this.checkLeaveInfoStatus();
+    // 如果未完成留资，则不继续后续逻辑
+    if (!this.data.leaveInfoCompleted) return;
     // 登录状态检查：若已过期，由 handleUnauthorized 统一接管跳转，本次 onShow 直接返回，
     // 避免与请求拦截器(401)双重跳转，导致登录页被加载多次
     if (this.checkLoginStatus()) return;
@@ -61,6 +76,198 @@ Page({
     // 用户从公众号 webview 页面返回后，主动弹出兑底引导
     this.checkOfficialAccountReturn();
   },
+
+  // 检查是否已完成留资（不再使用缓存，每次进入页面都重新开始）
+  checkLeaveInfoStatus() {
+    this.setData({ leaveInfoCompleted: false });
+  },
+
+  // 返回留资页面（重新登记） - 仅在留资已完成时显示入口使用
+  handleBackToLeaveInfo() {
+    wx.showModal({
+      title: '重新登记',
+      content: '确定要重新登记用户信息吗？',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({
+            leaveInfoCompleted: false,
+            leaveInfoId: '',
+            leaveName: '',
+            leavePhoneNum: '',
+            leaveSearchContext: '',
+            leaveUserList: [],
+            showLeaveForm: true,
+            activeStep: 0,
+            pictureList: [],
+            queryResult: null,
+            formData: {
+              typeCode: this.data.formData.typeCode || '1',
+              sn: '',
+              imei: '',
+              imei2: ''
+            }
+          });
+        }
+      }
+    });
+  },
+
+  // ========== 留资相关方法 ==========
+
+  // 切换留资模式：手动新增 / 搜索选择
+  handleToggleLeaveMode() {
+    this.setData({
+      showLeaveForm: !this.data.showLeaveForm,
+      leaveSearchContext: '',
+      leaveUserList: []
+    });
+  },
+
+  // 姓名输入
+  handleLeaveNameChange(e) {
+    this.setData({ leaveName: e.detail });
+  },
+
+  // 手机号输入
+  handleLeavePhoneNumChange(e) {
+    this.setData({ leavePhoneNum: e.detail });
+  },
+
+  // 搜索关键词输入
+  handleLeaveSearchChange(e) {
+    this.setData({ leaveSearchContext: e.detail });
+  },
+
+  // 模糊查询用户列表
+  async handleLeaveSearch(e) {
+    // van-search 的 bind:search 事件 e.detail 为搜索值
+    const searchValue = (e && e.detail) ? e.detail : '';
+    const context = (searchValue || this.data.leaveSearchContext || '').trim();
+    if (!context) {
+      wx.showToast({ title: '请输入姓名或手机号', icon: 'none' });
+      return;
+    }
+    // 同步输入框的值
+    if (searchValue && searchValue !== this.data.leaveSearchContext) {
+      this.setData({ leaveSearchContext: searchValue });
+    }
+
+    this.setData({ isLeaveSearching: true, leaveUserList: [] });
+
+    try {
+      const res = await request({
+        url: buildApiUrl(API_ENDPOINTS.getLeaveInformationList),
+        method: 'GET',
+        data: { context }
+      });
+
+      const data = res.data;
+      console.log('搜索用户列表返回:', data);
+      if (data.code === 200 && Array.isArray(data.rows)) {
+        this.setData({ leaveUserList: data.rows });
+        if (data.rows.length === 0) {
+          wx.showToast({ title: '未找到匹配的用户', icon: 'none' });
+        }
+      } else {
+        wx.showToast({ title: data.msg || '查询失败', icon: 'none' });
+      }
+    } catch (error) {
+      console.error('查询用户列表失败:', error);
+      wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+    } finally {
+      this.setData({ isLeaveSearching: false });
+    }
+  },
+
+  // 从搜索结果中选择用户
+  handleSelectLeaveUser(e) {
+    const { index } = e.currentTarget.dataset;
+    const user = this.data.leaveUserList[index];
+    if (!user) return;
+
+    const id = user.id != null ? String(user.id) : '';
+    const name = user.name || '';
+    const phoneNum = user.phoneNum || '';
+
+    this.setData({
+      leaveInfoCompleted: true,
+      leaveInfoId: id,
+      leaveName: name,
+      leavePhoneNum: phoneNum,
+      leaveSearchContext: '',
+      leaveUserList: []
+    });
+
+    wx.showToast({ title: '已选择用户', icon: 'success' });
+
+    // 继续后续登录检查和初始化逻辑
+    this.afterLeaveInfoComplete();
+  },
+
+  // 新增用户信息
+  async handleLeaveInfoSubmit() {
+    const name = this.data.leaveName.trim();
+    const phoneNum = this.data.leavePhoneNum.trim();
+
+    if (!name) {
+      wx.showToast({ title: '请输入姓名', icon: 'none' });
+      return;
+    }
+    if (!phoneNum) {
+      wx.showToast({ title: '请输入手机号', icon: 'none' });
+      return;
+    }
+    if (!/^1[3-9]\d{9}$/.test(phoneNum)) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
+      return;
+    }
+
+    this.setData({ isLeaveSubmitting: true });
+
+    try {
+      const res = await request({
+        url: buildApiUrl(API_ENDPOINTS.insertLeaveInformation),
+        method: 'POST',
+        data: { name, phoneNum },
+        header: { 'content-type': 'application/json' }
+      });
+
+      const data = res.data;
+      if (data.code === 200) {
+        const userId = data.id != null ? String(data.id) : '';
+        this.setData({
+          leaveInfoCompleted: true,
+          leaveInfoId: userId,
+          leaveName: name,
+          leavePhoneNum: phoneNum
+        });
+
+        wx.showToast({ title: '登记成功', icon: 'success' });
+
+        // 继续后续登录检查和初始化逻辑
+        this.afterLeaveInfoComplete();
+      } else {
+        wx.showToast({ title: data.msg || '提交失败', icon: 'none' });
+      }
+    } catch (error) {
+      console.error('提交留资信息失败:', error);
+      wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+    } finally {
+      this.setData({ isLeaveSubmitting: false });
+    }
+  },
+
+  // 留资完成后的后续初始化
+  afterLeaveInfoComplete() {
+    // 登录状态检查
+    if (this.checkLoginStatus()) return;
+    // 获取手机型号列表
+    this.fetchPhoneTypeList();
+    // 用户从公众号 webview 页面返回
+    this.checkOfficialAccountReturn();
+  },
+
+  // ========== 留资相关方法 END ==========
 
   // 检测是否为开发/体验环境，控制调试入口可见性
   detectDevEnv() {
@@ -91,16 +298,12 @@ Page({
     try {
       const res = await request({
         url: buildApiUrl(API_ENDPOINTS.queryPhoneTypeList),
-        method: 'GET',
-        header: {
-          Authorization: 'Bearer ' + wx.getStorageSync('token'),
-          'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
-        }
+        method: 'GET'
       });
 
       const data = res.data;
-      if (data.code === 200 && Array.isArray(data.data) && data.data.length > 0) {
-        const modelOptions = data.data.map(item => ({
+      if (data.code === 200 && Array.isArray(data.rows) && data.rows.length > 0) {
+        const modelOptions = data.rows.map(item => ({
           name: item.name,
           value: item.code
         }));
@@ -446,9 +649,6 @@ Page({
           formData: {
             typeCode: this.data.formData.typeCode || '1'
           },
-          header: {
-            'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
-          },
           success: res => {
             console.log('后端OCR接口返回:', res);
             if (res.statusCode === 200) {
@@ -706,6 +906,8 @@ Page({
         typeCode,
         code: sn || imei
       };
+      const infoId = this.data.leaveInfoId;
+      if (infoId) formData.infoId = infoId;
       if (imei) formData.imei = imei;
 
       let data;
@@ -721,11 +923,7 @@ Page({
           url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
           filePath: localFilePath,
           name: 'img',
-          formData,
-          header: {
-            Authorization: 'Bearer ' + wx.getStorageSync('token'),
-            'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
-          }
+          formData
         });
 
         // uploadFile 返回的 data 是字符串，需要解析
@@ -737,17 +935,16 @@ Page({
           url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
           method: 'POST',
           data: formData,
-          header: {
-            Authorization: 'Bearer ' + wx.getStorageSync('token'),
-            'x-app-wechat': '5c89231b711447acbf995c28c435dc39',
-            'Content-Type': 'multipart/form-data'
-          }
+          header: { 'Content-Type': 'multipart/form-data' }
         });
         data = res.data;
       }
 
-      if (data.code === 200 && data.data) {
-        const resultData = data.data;
+      // 兼容两种响应格式：uploadFile 返回可能有 data 包裹，request 已标准化为扁平结构
+      const resultData = (data.data && typeof data.data === 'object' && !Array.isArray(data.data))
+        ? data.data
+        : data;
+      if (data.code === 200) {
         const coverageDate = resultData.coverage;
         let isExpired = false;
         let warrantyStatus = '未知';
@@ -924,25 +1121,4 @@ Page({
     });
   },
 
-  // ========== 查看已签署协议 ==========
-  handleViewSignedContract() {
-    const { signedContractInfo, contractData } = this.data;
-    const filePath = signedContractInfo?.contractPath || contractData?.filePath;
-    if (!filePath) {
-      wx.showToast({ title: '协议文件不存在', icon: 'none' });
-      return;
-    }
-    // 拼接完整 URL 并用 wx.previewImage / wx.openDocument 打开
-    const baseUrl = getApiBase();
-    const fullPath = filePath.startsWith('http') ? filePath : `${baseUrl}${filePath}`;
-    console.log("🚀 ~ fullPath:", fullPath)
-    wx.openDocument({
-      filePath: fullPath,
-      showMenu: true,
-      fail: () => {
-        // 如果不支持直接打开，尝试下载后用 web-view 或预览图片
-        wx.showToast({ title: '协议文件无法预览', icon: 'none' });
-      }
-    });
-  }
 });

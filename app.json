@@ -7,7 +7,9 @@
     "pages/history/history",
     "pages/webview/webview",
     "pages/agreement/agreement",
-    "pages/contract-sign/contract-sign"
+    "pages/contract-sign/contract-sign",
+    "pages/compensation-order/compensation-order",
+    "pages/review-list/review-list"
   ],
   "window": {
     "navigationBarTextStyle": "black",

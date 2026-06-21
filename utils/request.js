@@ -1,33 +1,33 @@
 /**
  * 统一请求工具
- * 封装 wx.request 和 wx.uploadFile，统一处理 401 登录过期
+ * 封装 wx.request 和 wx.uploadFile，统一处理：
+ * - 401 登录过期
+ * - 公共请求头注入
+ * - 响应体标准化（兼容 { data: {...} } 和扁平结构）
  */
 
+const { buildApiUrl } = require('../config');
+
 // 是否正在跳转登录页：一旦置 true，本次会话内不再触发重复弹窗/跳转
-// 仅在登录页 onLoad 时通过 resetLoginRedirectFlag 重置
 let isRedirectingToLogin = false;
 
 /**
  * 重置"正在跳转登录页"标志
- * 由登录页 onLoad 调用，确保下次 token 过期还能正常拦截
  */
 const resetLoginRedirectFlag = () => {
   isRedirectingToLogin = false;
 };
 
 /**
- * 处理 401 登录过期：提示用户 → 清理缓存 → 跳转登录页
- * 整个 App 会话内只会触发一次，直到进入登录页后才允许下一次
+ * 处理 401 登录过期
  */
 const handleUnauthorized = () => {
   if (isRedirectingToLogin) return;
   isRedirectingToLogin = true;
 
-  // 关闭可能存在的 loading/toast，避免覆盖 modal
   try { wx.hideLoading(); } catch (_e) { /* ignore */ }
   try { wx.hideToast(); } catch (_e) { /* ignore */ }
 
-  // 立即清理本地缓存（token、用户信息等），防止后续逻辑读到过期数据
   try { wx.clearStorageSync(); } catch (_e) { /* ignore */ }
 
   wx.showModal({
@@ -36,45 +36,28 @@ const handleUnauthorized = () => {
     showCancel: false,
     confirmText: '重新登录',
     success: () => {
-      wx.reLaunch({
-        url: '/pages/login/login'
-        // 不在此重置 isRedirectingToLogin，由登录页 onLoad 重置
-      });
+      wx.reLaunch({ url: '/pages/login/login' });
     },
     fail: () => {
-      // modal 异常时也强制跳转，避免卡死
       wx.reLaunch({ url: '/pages/login/login' });
     }
   });
 };
 
 /**
- * 检查是否为 401 未授权
- * 同时支持两种场景：
- * 1. HTTP 状态码为 401
- * 2. HTTP 状态码为 200，但响应体中 code 为 401
- * @param {Object} res - wx.request / wx.uploadFile 的响应对象
- * @returns {boolean} 是否为 401
+ * 检查是否为 401
  */
 const checkUnauthorized = (res) => {
-  // 场景1：HTTP 状态码 401
   if (res.statusCode === 401) {
     handleUnauthorized();
     return true;
   }
 
-  // 场景2：响应体中 code 为 401（后端业务层返回的认证失败）
   const data = res.data;
   if (data) {
-    // wx.request 返回的 data 已经是对象
-    // wx.uploadFile 返回的 data 是字符串，需要解析
     let bodyData = data;
     if (typeof data === 'string') {
-      try {
-        bodyData = JSON.parse(data);
-      } catch (_e) {
-        return false;
-      }
+      try { bodyData = JSON.parse(data); } catch (_e) { return false; }
     }
     if (bodyData && bodyData.code === 401) {
       handleUnauthorized();
@@ -86,12 +69,45 @@ const checkUnauthorized = (res) => {
 };
 
 /**
- * 封装 wx.request，自动拦截 401
- * @param {Object} options - wx.request 的参数
+ * 获取公共请求头
+ */
+const getCommonHeaders = () => ({
+  Authorization: 'Bearer ' + (wx.getStorageSync('token') || ''),
+  'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
+});
+
+/**
+ * 标准化响应体
+ * 兼容两种后端返回格式：
+ *   { code: 200, data: { rows: [...], total: 2 } }   → 有 data 包裹
+ *   { code: 200, rows: [...], total: 2 }              → 扁平结构
+ * 统一为扁平结构 { code, msg, rows, total, ... }
+ */
+const normalizeResponse = (res) => {
+  const body = res.data;
+
+  // 如果 body 不是对象，直接返回
+  if (!body || typeof body !== 'object') return res;
+
+  // 如果存在 data 字段且为对象，将 data 的内容提升到 body 层级
+  if (body.data && typeof body.data === 'object' && !Array.isArray(body.data)) {
+    const { data: wrapper, ...rest } = body;
+    res.data = { ...rest, ...wrapper };
+  }
+
+  return res;
+};
+
+/**
+ * 封装 wx.request，自动：
+ * - 注入公共请求头
+ * - 标准化响应体（兼容 data 包裹和扁平结构）
+ * - 拦截 401
+ *
+ * @param {Object} options - wx.request 参数
  * @returns {Promise}
  */
 const request = (options) => {
-  // 已在跳转登录页过程中，直接拒绝后续请求，避免触发更多 401
   if (isRedirectingToLogin) {
     return Promise.reject(new Error('登录状态已过期'));
   }
@@ -99,16 +115,22 @@ const request = (options) => {
   const originalSuccess = options.success;
   const originalFail = options.fail;
 
+  // 合并公共请求头（自定义 header 优先级更高）
+  const mergedHeaders = { ...getCommonHeaders(), ...(options.header || {}) };
+
   return new Promise((resolve, reject) => {
     wx.request({
       ...options,
+      header: mergedHeaders,
       success: (res) => {
-        // 拦截 401（HTTP 状态码或响应体 code）
         if (checkUnauthorized(res)) {
           reject(new Error('登录状态已过期'));
           return;
         }
-        // 如果调用方传了 success 回调，走回调模式
+
+        // 标准化响应体
+        normalizeResponse(res);
+
         if (originalSuccess) {
           originalSuccess(res);
           resolve(res);
@@ -129,12 +151,41 @@ const request = (options) => {
 };
 
 /**
+ * 便捷 GET 请求
+ * @param {string} endpoint - API_ENDPOINTS 中定义的 key
+ * @param {Object} params - URL 查询参数
+ * @param {Object} extraOptions - 额外的 wx.request 参数（如 header）
+ */
+const get = (endpoint, params, extraOptions) => {
+  return request({
+    url: buildApiUrl(endpoint),
+    method: 'GET',
+    data: params,
+    ...extraOptions
+  });
+};
+
+/**
+ * 便捷 POST 请求
+ * @param {string} endpoint - API_ENDPOINTS 中定义的 key
+ * @param {Object} data - 请求体
+ * @param {Object} extraOptions - 额外的 wx.request 参数
+ */
+const post = (endpoint, data, extraOptions) => {
+  const { header: extraHeader, ...restExtra } = extraOptions || {};
+  return request({
+    url: buildApiUrl(endpoint),
+    method: 'POST',
+    data,
+    header: { 'content-type': 'application/json', ...extraHeader },
+    ...restExtra
+  });
+};
+
+/**
  * 封装 wx.uploadFile，自动拦截 401
- * @param {Object} options - wx.uploadFile 的参数
- * @returns {Promise}
  */
 const uploadFile = (options) => {
-  // 已在跳转登录页过程中，直接拒绝后续请求
   if (isRedirectingToLogin) {
     return Promise.reject(new Error('登录状态已过期'));
   }
@@ -142,11 +193,14 @@ const uploadFile = (options) => {
   const originalSuccess = options.success;
   const originalFail = options.fail;
 
+  // 合并公共请求头（自定义 header 优先级更高）
+  const mergedHeaders = { ...getCommonHeaders(), ...(options.header || {}) };
+
   return new Promise((resolve, reject) => {
     wx.uploadFile({
       ...options,
+      header: mergedHeaders,
       success: (res) => {
-        // 拦截 401（HTTP 状态码或响应体 code）
         if (checkUnauthorized(res)) {
           reject(new Error('登录状态已过期'));
           return;
@@ -172,7 +226,10 @@ const uploadFile = (options) => {
 
 module.exports = {
   request,
+  get,
+  post,
   uploadFile,
+  getCommonHeaders,
   checkUnauthorized,
   handleUnauthorized,
   resetLoginRedirectFlag

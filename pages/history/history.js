@@ -174,20 +174,16 @@ Page({
         data: {
           pageNum: currentPage,
           pageSize: this.data.pageSize
-        },
-        header: {
-          Authorization: 'Bearer ' + wx.getStorageSync('token'),
-          'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
         }
       });
 
       const data = res.data;
 
-      if (data.code === 200 && data.data && data.data.rows) {
-        const rows = data.data.rows;
+      if (data.code === 200 && data.rows) {
+        const rows = data.rows;
         const formattedList = rows.map(item => this.formatOrderItem(item));
         // 判断是否还有更多数据
-        const total = data.data.total || 0;
+        const total = data.total || 0;
         const newList = isRefresh
           ? formattedList
           : [...this.data.orderList, ...formattedList];

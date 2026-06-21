@@ -136,16 +136,12 @@ Page({
     try {
       const res = await request({
         url: buildApiUrl(API_ENDPOINTS.getContract),
-        method: 'GET',
-        header: {
-          Authorization: 'Bearer ' + wx.getStorageSync('token'),
-          'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
-        }
+        method: 'GET'
       });
       const data = res.data;
       wx.hideLoading();
-      if (data.code === 200 && data.data) {
-        const contract = data.data;
+      if (data.code === 200 && data.id) {
+        const contract = data;
         // 后端返回的协议正文为 HTML 富文本，存放在 content 字段
         let rawContent = contract.content || '';
 
@@ -504,11 +500,7 @@ Page({
         url: uploadUrl,
         filePath: tempFilePath,
         name: 'signatureFile',
-        formData,
-        header: {
-          Authorization: 'Bearer ' + wx.getStorageSync('token'),
-          'x-app-wechat': '5c89231b711447acbf995c28c435dc39'
-        }
+        formData
       });
 
       console.log('[signContract] 后端原始响应 →', {

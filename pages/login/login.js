@@ -7,7 +7,7 @@ Page({
     statusBarHeight: 0,
     mode: 'login', // 'login' | 'register'
     // 登录相关
-    phone: '',
+    account: '',
     password: '',
     agreed: false,
     showPhoneForm: true,
@@ -36,7 +36,7 @@ Page({
     this.setData({
       mode,
       // 切换时清空表单
-      phone: '',
+      account: '',
       password: '',
       registerPhone: '',
       registerPassword: '',
@@ -76,10 +76,7 @@ Page({
           request({
             url: buildApiUrl(API_ENDPOINTS.login),
             method: 'POST',
-            header: {
-              'x-app-wechat': '5c89231b711447acbf995c28c435dc39',
-              'content-type': 'application/json'
-            },
+            header: { 'content-type': 'application/json' },
             data: {
               code: loginRes.code,
               userInfo: userInfo
@@ -156,10 +153,7 @@ Page({
           request({
             url: buildApiUrl(API_ENDPOINTS.login),
             method: 'POST',
-            header: {
-              'x-app-wechat': '5c89231b711447acbf995c28c435dc39',
-              'content-type': 'application/json'
-            },
+            header: { 'content-type': 'application/json' },
             data: {
               code: loginRes.code,
               encryptedData: e.detail.encryptedData,
@@ -210,9 +204,9 @@ Page({
     });
   },
 
-  // 手机号输入
-  handlePhoneChange(e) {
-    this.setData({ phone: e.detail });
+  // 账号输入（支持手机号或用户名）
+  handleAccountChange(e) {
+    this.setData({ account: e.detail });
   },
 
   // 密码输入
@@ -230,12 +224,12 @@ Page({
       return;
     }
 
-    const { phone, password } = this.data;
+    const { account, password } = this.data;
 
-    // 验证手机号
-    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+    // 验证账号非空
+    if (!account || !account.trim()) {
       wx.showToast({
-        title: '请输入正确的手机号',
+        title: '请输入手机号或用户名',
         icon: 'none'
       });
       return;
@@ -256,12 +250,9 @@ Page({
     request({
       url: buildApiUrl(API_ENDPOINTS.login),
       method: 'POST',
-      header: {
-        'x-app-wechat': '5c89231b711447acbf995c28c435dc39',
-        'content-type': 'application/json'
-      },
+      header: { 'content-type': 'application/json' },
       data: {
-        username: phone,
+        username: account.trim(),
         password
       },
       success: res => {
@@ -270,7 +261,7 @@ Page({
           // 后端返回成功
           this.mockLogin({
             type: 'password',
-            phone: data.phonenumber || phone,
+            phone: data.phonenumber || account,
             token: data.token,
             nickName: data.nickName,
             avatar: data.avatar,

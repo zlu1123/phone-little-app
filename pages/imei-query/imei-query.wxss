@@ -420,7 +420,244 @@ page {
   transform: scale(0.98);
 }
 
-/* ========== 已签署协议信息展示 ========== */
+/* ========== 留资界面样式 ========== */
+.leave-info-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 20rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.leave-info-card {
+  width: 100%;
+  max-width: 680rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 32rpx 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(25, 137, 250, 0.08);
+  animation: fadeIn 0.5s ease;
+}
+
+/* 头部 */
+.leave-info-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 48rpx;
+}
+
+.leave-info-icon {
+  width: 120rpx;
+  height: 120rpx;
+  background: linear-gradient(
+    135deg,
+    rgba(25, 137, 250, 0.08) 0%,
+    rgba(5, 112, 219, 0.12) 100%
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28rpx;
+}
+
+.leave-info-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
+  margin-bottom: 12rpx;
+}
+
+.leave-info-subtitle {
+  font-size: 26rpx;
+  color: #969799;
+  line-height: 1.4;
+}
+
+/* 模式切换Tab */
+.leave-mode-tabs {
+  display: flex;
+  background: #f5f7fa;
+  border-radius: 16rpx;
+  padding: 6rpx;
+  margin-bottom: 36rpx;
+}
+
+.leave-mode-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18rpx 0;
+  font-size: 28rpx;
+  color: #969799;
+  border-radius: 12rpx;
+  transition: all 0.3s ease;
+}
+
+.leave-mode-tab--active {
+  background: #fff;
+  color: #1989fa;
+  font-weight: 600;
+  box-shadow: 0 2rpx 12rpx rgba(25, 137, 250, 0.15);
+}
+
+/* 提交按钮 */
+.leave-submit-btn {
+  margin-top: 40rpx;
+  padding: 0 16rpx;
+}
+
+/* 搜索区域 */
+.leave-search-section {
+  margin: 0;
+}
+
+.leave-search-bar {
+  margin: 0 -16rpx;
+}
+
+.leave-search-bar .van-search {
+  padding: 0 16rpx !important;
+  background: transparent !important;
+}
+
+.leave-search-bar .van-search__content {
+  background: #f5f7fa !important;
+  border-radius: 16rpx !important;
+}
+
+.search-action-text {
+  color: #1989fa;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 搜索结果加载中 */
+.leave-list-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+/* 搜索结果列表 */
+.leave-user-list {
+  margin-top: 24rpx;
+}
+
+.leave-user-item {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 20rpx;
+  border-bottom: 1rpx solid #f5f7fa;
+  transition: background 0.2s ease;
+}
+
+.leave-user-item:last-child {
+  border-bottom: none;
+}
+
+.leave-user-item--hover {
+  background: #f7f9fc;
+}
+
+.leave-user-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  background: linear-gradient(
+    135deg,
+    rgba(25, 137, 250, 0.08) 0%,
+    rgba(5, 112, 219, 0.12) 100%
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.leave-user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.leave-user-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+.leave-user-phone {
+  font-size: 26rpx;
+  color: #969799;
+  margin-top: 6rpx;
+}
+
+/* 搜索结果空态 */
+.leave-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0 60rpx;
+}
+
+.leave-list-empty .empty-text {
+  font-size: 26rpx;
+  color: #c8c9cc;
+  margin-top: 20rpx;
+}
+
+/* ========== 已登记用户信息提示条 ========== */
+.leave-info-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f2ff 100%);
+  margin: 0 20rpx;
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(25, 137, 250, 0.06);
+}
+
+.leave-info-bar__left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+}
+
+.leave-info-bar__text {
+  font-size: 26rpx;
+  color: #323233;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leave-info-bar__right {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+  color: #1989fa;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  border-radius: 8rpx;
+  transition: background 0.2s ease;
+}
+
+.leave-info-bar__right--hover {
+  background: rgba(25, 137, 250, 0.08);
+}
 .signed-contract-info {
   background: linear-gradient(135deg, #f0faf4 0%, #e8f5ee 100%);
   border: 2rpx solid #07c160;

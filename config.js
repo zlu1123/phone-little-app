@@ -23,8 +23,8 @@ const getEnvVersion = () => {
  */
 const API_BASE_BY_ENV = {
   // develop: 'http://124.222.38.87:8090',
-  develop: 'https://www.ybxz.top/prod-api/',
-  // develop: 'http://43.164.129.96:8090',
+  // develop: 'https://www.ybxz.top/prod-api/',
+  develop: 'http://43.164.129.96:8090',
   trial: 'https://www.ybxz.top/prod-api/',
   release: 'https://www.ybxz.top/prod-api/'
 };
@@ -51,7 +51,19 @@ const API_ENDPOINTS = {
   // 查询生效协议
   getContract: '/wechat/api/getContract',
   // 协议签订（同时上传签名图片，multipart/form-data）
-  signContract: '/wechat/api/signContract'
+  signContract: '/wechat/api/signContract',
+  // 留资 - 新增用户信息
+  insertLeaveInformation: '/wechat/api/insertLeaveInformation',
+  // 留资 - 查询用户信息列表（模糊查询）
+  getLeaveInformationList: '/wechat/api/getLeaveInformationList',
+  // 已签约待赔付 - 查询已签约订单列表
+  querySignContractOrderList: '/wechat/api/querySignContractOrderList',
+  // 已签约待赔付 - 新增赔付订单
+  insertCompensationOrder: '/wechat/api/insertCompensationOrder',
+  // 待审核 - 查询赔付订单列表（带status筛选）
+  getCompensationOrderList: '/wechat/api/getCompensationOrderList',
+  // 待审核 - 修改赔付订单（通过/驳回）
+  updateCompensationOrder: '/wechat/api/updateCompensationOrder'
 };
 
 const joinUrl = (baseUrl, path) => {
