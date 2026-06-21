@@ -55,6 +55,29 @@ Page({
     apiBase: ''
   },
 
+  onLoad() {
+    // 每次真正进入页面（非从系统API返回）时，重置留资状态
+    this.setData({
+      leaveInfoCompleted: false,
+      leaveInfoId: '',
+      leaveName: '',
+      leavePhoneNum: '',
+      leaveSearchContext: '',
+      leaveUserList: [],
+      showLeaveForm: true,
+      activeStep: 0,
+      pictureList: [],
+      queryResult: null,
+      signedContractInfo: null,
+      formData: {
+        typeCode: '1',
+        sn: '',
+        imei: '',
+        imei2: ''
+      }
+    });
+  },
+
   onShow() {
     // 同步自定义 tabBar 选中状态
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
@@ -64,9 +87,7 @@ Page({
     this.setData({ apiBase: getApiBase() });
     // 识别环境：develop=开发版 / trial=体验版 时显示调试入口
     this.detectDevEnv();
-    // 检查是否已完成留资
-    this.checkLeaveInfoStatus();
-    // 如果未完成留资，则不继续后续逻辑
+    // 如果未完成留资，则不继续后续逻辑（onShow 不再重置留资状态，只在 onLoad 中重置）
     if (!this.data.leaveInfoCompleted) return;
     // 登录状态检查：若已过期，由 handleUnauthorized 统一接管跳转，本次 onShow 直接返回，
     // 避免与请求拦截器(401)双重跳转，导致登录页被加载多次
@@ -75,11 +96,6 @@ Page({
     this.fetchPhoneTypeList();
     // 用户从公众号 webview 页面返回后，主动弹出兑底引导
     this.checkOfficialAccountReturn();
-  },
-
-  // 检查是否已完成留资（不再使用缓存，每次进入页面都重新开始）
-  checkLeaveInfoStatus() {
-    this.setData({ leaveInfoCompleted: false });
   },
 
   // 返回留资页面（重新登记） - 仅在留资已完成时显示入口使用
@@ -234,7 +250,9 @@ Page({
 
       const data = res.data;
       if (data.code === 200) {
-        const userId = data.id != null ? String(data.id) : '';
+        // 接口返回 {"code":200,"data":11}，data 直接就是 ID 值
+        const userId = data.data != null ? String(data.data) : '';
+
         this.setData({
           leaveInfoCompleted: true,
           leaveInfoId: userId,

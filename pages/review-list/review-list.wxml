@@ -103,4 +103,26 @@
       </view>
     </view>
   </view>
+
+  <!-- 驳回原因弹窗 -->
+  <view wx:if="{{ showRejectDialog }}" class="amount-dialog-overlay" catchtouchmove="{{ true }}">
+    <view class="amount-dialog">
+      <view class="amount-dialog__title">请填写驳回原因</view>
+      <view class="reject-reason__input-wrap">
+        <textarea
+          class="reject-reason__textarea"
+          placeholder="请输入驳回原因"
+          value="{{ rejectReasonInput }}"
+          bindinput="handleRejectReasonInput"
+          focus="{{ true }}"
+          maxlength="200"
+          auto-height
+        />
+      </view>
+      <view class="amount-dialog__actions">
+        <van-button size="small" round plain bindtap="handleCloseRejectDialog">取消</van-button>
+        <van-button size="small" round type="danger" bindtap="handleRejectReasonConfirm">确定驳回</van-button>
+      </view>
+    </view>
+  </view>
 </view>

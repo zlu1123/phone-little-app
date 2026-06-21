@@ -15,7 +15,11 @@ Page({
     // 金额输入弹窗
     showAmountDialog: false,
     amountInput: '',
-    currentReviewIndex: -1
+    currentReviewIndex: -1,
+
+    // 驳回原因弹窗
+    showRejectDialog: false,
+    rejectReasonInput: ''
   },
 
   onLoad() {
@@ -107,14 +111,11 @@ Page({
         currentReviewIndex: index
       });
     } else {
-      // 驳回：直接弹确认
-      wx.showModal({
-        title: '确认驳回',
-        content: '确定驳回该订单吗？',
-        success: (res) => {
-          if (!res.confirm) return;
-          this.submitReview(index, 2, 0, '');
-        }
+      // 驳回：弹出原因输入框
+      this.setData({
+        showRejectDialog: true,
+        rejectReasonInput: '',
+        currentReviewIndex: index
       });
     }
   },
@@ -153,8 +154,39 @@ Page({
     this.setData({ showAmountDialog: false, currentReviewIndex: -1 });
   },
 
+  // 驳回原因输入
+  handleRejectReasonInput(e) {
+    this.setData({ rejectReasonInput: e.detail.value });
+  },
+
+  // 驳回原因确认
+  handleRejectReasonConfirm() {
+    const reason = this.data.rejectReasonInput.trim();
+    if (!reason) {
+      wx.showToast({ title: '请填写驳回原因', icon: 'none' });
+      return;
+    }
+
+    this.setData({ showRejectDialog: false });
+    const index = this.data.currentReviewIndex;
+
+    wx.showModal({
+      title: '确认驳回',
+      content: `驳回原因：${reason}\n确定驳回该订单吗？`,
+      success: (res) => {
+        if (!res.confirm) return;
+        this.submitReview(index, 2, 0, '', reason);
+      }
+    });
+  },
+
+  // 关闭驳回弹窗
+  handleCloseRejectDialog() {
+    this.setData({ showRejectDialog: false, currentReviewIndex: -1 });
+  },
+
   // 提交审核
-  submitReview(index, status, amount, remark) {
+  submitReview(index, status, amount, remark, rejectionReason) {
     const order = this.data.orderList[index];
     if (!order) return;
 
@@ -167,8 +199,8 @@ Page({
         id: order.id,
         amount,
         status,
-        rejectionReason: '',
-        remark
+        rejectionReason: rejectionReason || '',
+        remark: remark || ''
       },
       success: (result) => {
         const body = result.data;
