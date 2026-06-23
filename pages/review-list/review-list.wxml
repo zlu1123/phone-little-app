@@ -100,7 +100,7 @@
   <van-dialog
     use-slot
     show="{{ showAmountDialog }}"
-    title="请输入赔付金额"
+    title="请输入赔付金额（选填）"
     show-cancel-button
     confirm-button-text="确定"
     before-close="{{ beforeAmountClose }}"

@@ -2,17 +2,14 @@
 <view class="contract-sign-page">
   <!-- ===== 阶段1：查看协议 ===== -->
   <view wx:if="{{ stage === 'contract' }}" class="contract-section">
-    <!-- 自定义导航栏（顶部安全区 + 标题栏） -->
-    <view class="nav-header" style="padding-top: {{ statusBarHeight }}px;">
-      <view class="nav-bar">
-        <view class="back-btn" bindtap="handleCloseContract" aria-label="返回">
-          <text class="back-arrow">←</text>
-          <text class="back-text">返回</text>
-        </view>
-        <text class="page-title">协议签署</text>
-        <view class="nav-placeholder"></view>
-      </view>
-    </view>
+    <!-- 导航栏 -->
+    <van-nav-bar
+      title="协议签署"
+      left-text="返回"
+      left-arrow
+      safe-area-inset-top
+      bind:click-left="handleCloseContract"
+    />
 
     <!-- 协议正文（HTML 富文本，由后端 content 字段返回） -->
     <view wx:if="{{ contractLoaded && contractContent }}" class="contract-card">
@@ -62,17 +59,14 @@
 
   <!-- ===== 阶段2：填写设备信息（SN / IMEI / 手机型号）===== -->
   <view wx:if="{{ stage === 'device-info' }}" class="device-info-section">
-    <!-- 自定义导航栏 -->
-    <view class="nav-header" style="padding-top: {{ statusBarHeight }}px;">
-      <view class="nav-bar">
-        <view class="back-btn" bindtap="handleBackToContract" aria-label="返回">
-          <text class="back-arrow">←</text>
-          <text class="back-text">返回</text>
-        </view>
-        <text class="page-title">填写设备信息</text>
-        <view class="nav-placeholder"></view>
-      </view>
-    </view>
+    <!-- 导航栏 -->
+    <van-nav-bar
+      title="填写设备信息"
+      left-text="返回"
+      left-arrow
+      safe-area-inset-top
+      bind:click-left="handleBackToContract"
+    />
 
     <view class="device-info-header">
       <view class="device-info-title">请填写新设备信息</view>
@@ -144,17 +138,14 @@
 
   <!-- ===== 阶段3：手写签名 ===== -->
   <view wx:if="{{ stage === 'signature' }}" class="signature-section">
-    <!-- 自定义导航栏 -->
-    <view class="nav-header" style="padding-top: {{ statusBarHeight }}px;">
-      <view class="nav-bar">
-        <view class="back-btn" bindtap="handleCancelSignature" aria-label="返回">
-          <text class="back-arrow">←</text>
-          <text class="back-text">返回</text>
-        </view>
-        <text class="page-title">手写签名</text>
-        <view class="nav-placeholder"></view>
-      </view>
-    </view>
+    <!-- 导航栏 -->
+    <van-nav-bar
+      title="手写签名"
+      left-text="返回"
+      left-arrow
+      safe-area-inset-top
+      bind:click-left="handleCancelSignature"
+    />
 
     <view class="signature-header">
       <view class="signature-title">请手写签名</view>
@@ -202,5 +193,52 @@
         确认签名
       </van-button>
     </view>
+  </view>
+
+  <!-- ===== 阶段4：签署成功 ===== -->
+  <view wx:if="{{ stage === 'success' }}" class="success-section">
+    <!-- 成功内容 -->
+    <view class="success-body">
+      <view class="success-icon-wrapper">
+        <van-icon name="passed" size="96rpx" color="#07c160" />
+      </view>
+
+      <view class="success-title">签署成功</view>
+      <view class="success-subtitle">协议已成功签署，感谢您的使用</view>
+
+      <view class="success-actions">
+        <van-button
+          class="btn-go-home"
+          round
+          block
+          type="primary"
+          bind:click="handleGoHome"
+        >
+          返回首页
+        </van-button>
+        <van-button
+          class="btn-view-order"
+          round
+          block
+          plain
+          type="primary"
+          bind:click="handleViewOrder"
+        >
+          查看本次订单
+        </van-button>
+      </view>
+    </view>
+
+    <!-- 底部tabbar（保持与全局tabbar一致） -->
+    <van-tabbar
+      active="{{ successTabActive }}"
+      active-color="#1989fa"
+      inactive-color="#7d7e80"
+      bind:change="handleSuccessTabChange"
+    >
+      <van-tabbar-item wx:for="{{ successTabList }}" wx:key="index" icon="{{ item.icon }}">
+        {{ item.text }}
+      </van-tabbar-item>
+    </van-tabbar>
   </view>
 </view>

@@ -694,3 +694,169 @@ page {
   padding: 2rpx 12rpx;
   border-radius: 999rpx;
 }
+
+/* ========== 设备来源选择样式 ========== */
+.device-source-container,
+.old-phone-usage-container {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 20rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.device-source-card {
+  width: 100%;
+  max-width: 680rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 32rpx 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(25, 137, 250, 0.08);
+  animation: fadeIn 0.5s ease;
+}
+
+.device-source-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40rpx;
+}
+
+.device-source-icon {
+  width: 120rpx;
+  height: 120rpx;
+  background: linear-gradient(
+    135deg,
+    rgba(25, 137, 250, 0.08) 0%,
+    rgba(5, 112, 219, 0.12) 100%
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28rpx;
+}
+
+.device-source-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
+  margin-bottom: 12rpx;
+  text-align: center;
+}
+
+.device-source-subtitle {
+  font-size: 26rpx;
+  color: #969799;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* 选项列表 */
+.device-source-options {
+  margin-bottom: 32rpx;
+}
+
+.device-source-option {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 24rpx;
+  background: #f7f8fa;
+  border-radius: 16rpx;
+  margin-bottom: 16rpx;
+  transition: all 0.2s ease;
+}
+
+.device-source-option:last-child {
+  margin-bottom: 0;
+}
+
+.device-source-option--hover {
+  background: #eef3fb;
+  transform: scale(0.98);
+}
+
+.device-source-option__icon {
+  width: 72rpx;
+  height: 72rpx;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.device-source-option__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.device-source-option__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.3;
+  margin-bottom: 6rpx;
+}
+
+.device-source-option__desc {
+  font-size: 24rpx;
+  color: #969799;
+  line-height: 1.3;
+}
+
+/* 返回上一步 */
+.device-source-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 24rpx 0;
+  font-size: 26rpx;
+  color: #1989fa;
+  transition: opacity 0.2s ease;
+}
+
+.device-source-back--hover {
+  opacity: 0.7;
+}
+
+/* 操作按钮区域 */
+.device-source-actions {
+  margin-bottom: 16rpx;
+}
+
+/* 使用时长额外文本 */
+.usage-extra {
+  font-size: 26rpx;
+  color: #969799;
+}
+
+/* 无旧手机表单容器 */
+.no-old-phone-form-container {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 20rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+}
+
+/* cell-group 间距 */
+.mt-3 {
+  margin-top: 24rpx;
+}
+
+/* 损坏/丢失提示 */
+.damaged-tip {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 32rpx 20rpx;
+  font-size: 24rpx;
+  color: #ee0a24;
+  line-height: 1.4;
+}

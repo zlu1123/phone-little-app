@@ -130,39 +130,34 @@ Page({
     }
   },
 
-  // 金额弹窗 before-close：校验金额有效性
+  // 金额弹窗 before-close：金额可选，不强制校验
   beforeAmountClose(action) {
     return new Promise((resolve) => {
-      if (action === 'confirm') {
-        const amount = parseFloat(this.data.amountInput);
-        if (isNaN(amount) || amount <= 0) {
-          wx.showToast({ title: '请输入有效的赔付金额', icon: 'none' });
-          resolve(false);
-          return;
-        }
-        resolve(true);
-      } else {
-        resolve(true);
-      }
+      resolve(true);
     });
   },
 
-  // 金额弹窗关闭后 → 二次确认
+  // 金额弹窗关闭后 → 二次确认（金额可选）
   onAmountDialogClosed() {
     if (this.data.pendingAction !== 'approve') return;
-    const amount = parseFloat(this.data.amountInput);
-    if (isNaN(amount) || amount <= 0) return;
+    const inputVal = (this.data.amountInput || '').trim();
+    const amount = inputVal ? parseFloat(inputVal) : 0;
+    const hasAmount = inputVal && !isNaN(amount) && amount > 0;
 
     const index = this.data.currentReviewIndex;
+    const confirmContent = hasAmount
+      ? `赔付金额：¥${amount.toFixed(2)}\n确定通过该订单的审核吗？`
+      : `未填写赔付金额\n确定通过该订单的审核吗？（后续可在管理端修改金额）`;
+
     wx.showModal({
       title: '确认通过',
-      content: `赔付金额：¥${amount.toFixed(2)}\n确定通过该订单的审核吗？`,
+      content: confirmContent,
       success: (res) => {
         if (!res.confirm) {
           this.setData({ pendingAction: '' });
           return;
         }
-        this.submitReview(index, 1, amount, '完成');
+        this.submitReview(index, 1, hasAmount ? amount : 0, '完成');
       }
     });
   },

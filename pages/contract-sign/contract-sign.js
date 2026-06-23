@@ -8,8 +8,6 @@ const { request, uploadFile } = require('../../utils/request');
 
 Page({
   data: {
-    statusBarHeight: 0,
-
     // 订单 id（从上一页传递）
     orderId: '',
 
@@ -46,18 +44,36 @@ Page({
     apiBase: '',
 
     // 阶段：'contract' = 查看协议，'device-info' = 填写设备信息，'signature' = 手写签名
-    stage: 'contract'
+    stage: 'contract',
+
+    // 签署成功页底部 tabbar
+    successTabActive: 0,
+    successTabList: [
+      { pagePath: '/pages/imei-query/imei-query', text: '首页', icon: 'wap-home-o' },
+      { pagePath: '/pages/my/my', text: '我的', icon: 'contact-o' }
+    ]
   },
 
   onLoad(options) {
-    const systemInfo = wx.getSystemInfoSync();
     const orderId = options.orderId || '';
+
+    // 从 URL 参数读取设备信息（无旧手机场景预填，跳过重复填写）
+    const skipDeviceInfo = options.skipDeviceInfo === 'true';
+    const prefillDevice = {
+      imei: decodeURIComponent(options.imei || ''),
+      sn: decodeURIComponent(options.sn || ''),
+      phoneModel: decodeURIComponent(options.phoneModel || '')
+    };
+
     this.setData({
-      statusBarHeight: systemInfo.statusBarHeight,
       orderId,
       apiBase: getApiBase(),
-      stage: 'contract'
+      stage: 'contract',
+      deviceForm: prefillDevice
     });
+
+    // 标记是否需要跳过设备信息填写阶段
+    this._skipDeviceInfo = skipDeviceInfo;
 
     this.loadContract();
   },
@@ -259,11 +275,16 @@ Page({
     wx.navigateBack();
   },
 
-  // 确认协议，进入设备信息填写阶段
+  // 确认协议，进入下一阶段（有设备信息则跳过填写直接签名）
   handleContractConfirm() {
     if (!this.data.contractCanConfirm) return;
     this.clearContractCountdown();
-    this.setData({ stage: 'device-info' });
+    // 无旧手机场景：设备信息已从上一页带入，跳过填写阶段
+    if (this._skipDeviceInfo && this.validateDeviceForm() === '') {
+      this.enterSignatureStage();
+    } else {
+      this.setData({ stage: 'device-info' });
+    }
   },
 
   // ========== 设备信息阶段 ==========
@@ -300,16 +321,19 @@ Page({
     return '';
   },
 
-  // 设备信息 「下一步」→ 进入签名阶段（并切换为横屏）
+  // 设备信息 「下一步」→ 进入签名阶段
   handleDeviceInfoNext() {
     const errMsg = this.validateDeviceForm();
     if (errMsg) {
       wx.showToast({ title: errMsg, icon: 'none' });
       return;
     }
+    this.enterSignatureStage();
+  },
+
+  // 进入签名阶段（初始化画布，可被 handleContractConfirm 和 handleDeviceInfoNext 复用）
+  enterSignatureStage() {
     this.setData({ stage: 'signature' });
-    // 取消横屏，保持竖屏签名
-    // this.setOrientation('landscape');
     setTimeout(() => {
       this.initSignatureCanvas();
     }, 300);
@@ -388,11 +412,10 @@ Page({
     this.setData({ hasSigned: false });
   },
 
-  // 取消签名，返回设备信息填写阶段（保留已填写的内容）并恢复竖屏
+  // 取消签名：skipDeviceInfo 场景返回协议页，否则返回设备信息填写阶段
   handleCancelSignature() {
-    // this.setOrientation('portrait');
     this.setData({
-      stage: 'device-info',
+      stage: this._skipDeviceInfo ? 'contract' : 'device-info',
       hasSigned: false,
       signedImagePath: ''
     });
@@ -524,12 +547,8 @@ Page({
       if (data && data.code === 200) {
         wx.hideLoading();
         this.setData({ uploadingSignature: false });
-        wx.showToast({ title: '签署成功', icon: 'success' });
-        // 提交成功后跳转上一页前先恢复竖屏，避免上一页以横屏状态展示
-        // this.setOrientation('portrait');
-        setTimeout(() => {
-          wx.navigateBack();
-        }, 1500);
+        // 签署成功 → 展示成功结果页
+        this.setData({ stage: 'success' });
       } else {
         const errMsg = (data && (data.msg || data.message)) || `签订失败（code=${data && data.code}）`;
         throw new Error(errMsg);
@@ -543,6 +562,27 @@ Page({
         content: (err && err.message) || '未知错误，请稍后重试',
         showCancel: false
       });
+    }
+  },
+
+  // ========== 签署成功结果页 ==========
+
+  // 返回首页（查询tab，默认无值状态）
+  handleGoHome() {
+    wx.reLaunch({ url: '/pages/imei-query/imei-query' });
+  },
+
+  // 查看本次订单 → 跳转到查询记录列表
+  handleViewOrder() {
+    wx.navigateTo({ url: '/pages/history/history' });
+  },
+
+  // 签署成功页底部 tabbar 切换
+  handleSuccessTabChange(e) {
+    const index = e.detail;
+    const item = this.data.successTabList[index];
+    if (item && item.pagePath) {
+      wx.switchTab({ url: item.pagePath });
     }
   }
 });

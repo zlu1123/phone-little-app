@@ -51,6 +51,30 @@ Page({
     // 已签署协议信息（查询后展示）
     signedContractInfo: null,    // { contractId, contractPath, contractName, contractVersion, signaturePath }
 
+    // 设备来源选择（留资完成后展示）
+    showDeviceSource: false,
+
+    // 无旧手机信息表单
+    showNoOldPhoneForm: false,
+    noOldPhoneIsDamaged: false,  // 旧手机是否损坏/丢失
+
+    // 无旧手机 - 手机型号选择
+    noOldPhoneShowModelPicker: false,
+    noOldPhoneSelectedModelName: '',
+    noOldPhoneTypeCode: '',
+
+    // 无旧手机 - 手动输入信息
+    noOldPhoneModelName: '',     // 手动输入手机型号
+    noOldPhoneImei: '',          // IMEI
+    noOldPhoneSn: '',            // SN
+
+    // 旧手机使用时长输入
+    showOldPhoneUsageInput: false,
+    oldPhoneUsageMonths: '',
+
+    // 无旧手机操作加载态
+    isNoOldPhoneLoading: false,
+
     // API 基础地址（供 WXML 拼接协议文件完整 URL）
     apiBase: ''
   },
@@ -65,6 +89,16 @@ Page({
       leaveSearchContext: '',
       leaveUserList: [],
       showLeaveForm: true,
+      showDeviceSource: false,
+      showNoOldPhoneForm: false,
+      showOldPhoneUsageInput: false,
+      noOldPhoneIsDamaged: false,
+      noOldPhoneTypeCode: '',
+      noOldPhoneSelectedModelName: '',
+      noOldPhoneModelName: '',
+      noOldPhoneImei: '',
+      noOldPhoneSn: '',
+      oldPhoneUsageMonths: '',
       activeStep: 0,
       pictureList: [],
       queryResult: null,
@@ -113,6 +147,16 @@ Page({
             leaveSearchContext: '',
             leaveUserList: [],
             showLeaveForm: true,
+            showDeviceSource: false,
+            showNoOldPhoneForm: false,
+            showOldPhoneUsageInput: false,
+            noOldPhoneIsDamaged: false,
+            noOldPhoneTypeCode: '',
+            noOldPhoneSelectedModelName: '',
+            noOldPhoneModelName: '',
+            noOldPhoneImei: '',
+            noOldPhoneSn: '',
+            oldPhoneUsageMonths: '',
             activeStep: 0,
             pictureList: [],
             queryResult: null,
@@ -277,13 +321,238 @@ Page({
 
   // 留资完成后的后续初始化
   afterLeaveInfoComplete() {
-    // 登录状态检查
-    if (this.checkLoginStatus()) return;
-    // 获取手机型号列表
-    this.fetchPhoneTypeList();
-    // 用户从公众号 webview 页面返回
-    this.checkOfficialAccountReturn();
+    // 展示设备来源选择，让用户选择「有旧手机」或「无旧手机」
+    this.setData({ showDeviceSource: true });
   },
+
+  // ========== 设备来源选择相关方法 ==========
+
+  // 选择设备来源：有旧手机 / 无旧手机
+  handleSelectDeviceSource(e) {
+    const { source } = e.currentTarget.dataset;
+    if (source === 'has_old') {
+      // 有旧手机：继续现有流程
+      this.setData({ showDeviceSource: false });
+      if (this.checkLoginStatus()) return;
+      this.fetchPhoneTypeList();
+      this.checkOfficialAccountReturn();
+    } else if (source === 'no_old') {
+      // 无旧手机：直接展示手机信息表单
+      this.setData({
+        showDeviceSource: false,
+        showNoOldPhoneForm: true,
+        noOldPhoneIsDamaged: false,
+        noOldPhoneTypeCode: '',
+        noOldPhoneSelectedModelName: '',
+        noOldPhoneModelName: '',
+        noOldPhoneImei: '',
+        noOldPhoneSn: ''
+      });
+      this.fetchPhoneTypeListForNoOldPhone();
+    }
+  },
+
+  // 返回设备来源选择（从手机信息表单返回）
+  handleBackToNoOldPhoneScenario() {
+    this.setData({ showNoOldPhoneForm: false, showDeviceSource: true });
+  },
+
+  // 返回手机信息表单（从使用时长输入返回）
+  handleBackToNoOldPhoneForm() {
+    this.setData({ showOldPhoneUsageInput: false, showNoOldPhoneForm: true });
+  },
+
+  // 加载手机型号列表（无旧手机表单用）
+  async fetchPhoneTypeListForNoOldPhone() {
+    if (this.data.modelOptions.length > 0) return;
+
+    try {
+      const res = await request({
+        url: buildApiUrl(API_ENDPOINTS.queryPhoneTypeList),
+        method: 'GET'
+      });
+      const data = res.data;
+      if (data.code === 200 && Array.isArray(data.rows) && data.rows.length > 0) {
+        this.setData({
+          modelOptions: data.rows.map(item => ({ name: item.name, value: item.code }))
+        });
+      } else {
+        this.setFallbackModelOptions();
+      }
+    } catch (error) {
+      console.error('获取手机型号列表异常:', error);
+      this.setFallbackModelOptions();
+    }
+  },
+
+  // ========== 无旧手机 - 手机型号选择器 ==========
+
+  handleNoOldPhoneShowModelPicker() {
+    this.setData({ noOldPhoneShowModelPicker: true });
+  },
+
+  handleNoOldPhoneCloseModelPicker() {
+    this.setData({ noOldPhoneShowModelPicker: false });
+  },
+
+  handleNoOldPhoneSelectModel(e) {
+    const { value: selected, index } = e.detail || {};
+    const item = (selected && typeof selected === 'object')
+      ? selected
+      : (this.data.modelOptions[index] || {});
+
+    if (!item || !item.value) {
+      this.setData({ noOldPhoneShowModelPicker: false });
+      return;
+    }
+
+    this.setData({
+      noOldPhoneSelectedModelName: item.name,
+      noOldPhoneTypeCode: item.value,
+      noOldPhoneShowModelPicker: false
+    });
+  },
+
+  // ========== 无旧手机 - 表单输入事件 ==========
+
+  handleNoOldPhoneModelNameInput(e) {
+    this.setData({ noOldPhoneModelName: e.detail });
+  },
+
+  handleNoOldPhoneImeiInput(e) {
+    this.setData({ noOldPhoneImei: e.detail });
+  },
+
+  handleNoOldPhoneSnInput(e) {
+    this.setData({ noOldPhoneSn: e.detail });
+  },
+
+  // ========== 无旧手机 - 损坏/丢失开关 ==========
+
+  handleDamagedToggle(e) {
+    this.setData({ noOldPhoneIsDamaged: e.detail });
+  },
+
+  // ========== 无旧手机 - 提交表单，生成订单 ==========
+
+  async handleNoOldPhoneFormSubmit() {
+    const { noOldPhoneTypeCode, noOldPhoneImei, noOldPhoneSn, noOldPhoneIsDamaged } = this.data;
+
+    if (!noOldPhoneTypeCode) {
+      wx.showToast({ title: '请选择手机类型', icon: 'none' });
+      return;
+    }
+    const code = noOldPhoneSn || noOldPhoneImei;
+    if (!code) {
+      wx.showToast({ title: '请输入IMEI或SN', icon: 'none' });
+      return;
+    }
+
+    // 如果勾选了「旧手机损坏/丢失」，需要先确认使用时长
+    if (noOldPhoneIsDamaged) {
+      this.setData({
+        showNoOldPhoneForm: false,
+        showOldPhoneUsageInput: true,
+        oldPhoneUsageMonths: ''
+      });
+      return;
+    }
+
+    // 新增用户：直接生成订单
+    this.doCreateOrderAndSign();
+  },
+
+  // 旧手机使用时长输入
+  handleOldPhoneUsageInput(e) {
+    this.setData({ oldPhoneUsageMonths: e.detail });
+  },
+
+  // 确认旧手机使用时长
+  handleConfirmOldPhoneUsage() {
+    const months = parseInt(this.data.oldPhoneUsageMonths, 10);
+    if (isNaN(months) || months <= 0) {
+      wx.showToast({ title: '请输入有效的使用月数', icon: 'none' });
+      return;
+    }
+
+    if (months > 24) {
+      // 大于24个月 → 跳转亚丁屏卫
+      this.setData({ showOldPhoneUsageInput: false, showOAModal: true });
+    } else {
+      // 小于等于24个月 → 生成订单并签协议
+      this.doCreateOrderAndSign();
+    }
+  },
+
+  // 调用接口生成订单，获取 orderId 后跳转签协议页
+  async doCreateOrderAndSign() {
+    this.setData({
+      isNoOldPhoneLoading: true,
+      showOldPhoneUsageInput: false
+    });
+
+    try {
+      const infoId = this.data.leaveInfoId;
+      const { noOldPhoneTypeCode, noOldPhoneImei, noOldPhoneSn } = this.data;
+      const code = noOldPhoneSn || noOldPhoneImei;
+
+      const res = await request({
+        url: buildApiUrl(API_ENDPOINTS.queryActiveInfo),
+        method: 'POST',
+        data: {
+          typeCode: noOldPhoneTypeCode,
+          code: code,
+          infoId: infoId,
+          skipApiCall: true
+        },
+        header: { 'content-type': 'application/x-www-form-urlencoded' }
+      });
+
+      const data = res.data;
+      if (data.code === 200) {
+        const resultData = (data.data && typeof data.data === 'object' && !Array.isArray(data.data))
+          ? data.data
+          : data;
+        const orderId = resultData.id || data.data;
+        if (!orderId) {
+          wx.showToast({ title: '订单信息缺失，请重试', icon: 'none' });
+          return;
+        }
+
+        // 将已填写的设备信息传给签约页，避免重复填写
+        const { noOldPhoneImei: passedImei, noOldPhoneSn: passedSn, noOldPhoneModelName, noOldPhoneSelectedModelName } = this.data;
+        const phoneModel = noOldPhoneModelName || noOldPhoneSelectedModelName || '';
+        const queryParts = [
+          'orderId=' + encodeURIComponent(String(orderId)),
+          'imei=' + encodeURIComponent(passedImei || ''),
+          'sn=' + encodeURIComponent(passedSn || ''),
+          'phoneModel=' + encodeURIComponent(phoneModel),
+          'skipDeviceInfo=true'
+        ];
+
+        wx.navigateTo({
+          url: '/pages/contract-sign/contract-sign?' + queryParts.join('&')
+        });
+      } else {
+        wx.showToast({ title: data.msg || '操作失败', icon: 'none' });
+      }
+    } catch (error) {
+      console.error('生成订单失败:', error);
+      wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+    } finally {
+      this.setData({ isNoOldPhoneLoading: false });
+    }
+  },
+
+  // 返回手机信息表单（从使用时长输入返回）
+  handleBackToNoOldPhoneForm() {
+    this.setData({
+      showOldPhoneUsageInput: false,
+      showNoOldPhoneForm: true
+    });
+  },
+
+  // ========== 设备来源选择相关方法 END ==========
 
   // ========== 留资相关方法 END ==========
 
@@ -1140,8 +1409,19 @@ Page({
       return;
     }
 
+    // 新手机场景：设备信息已查询完毕，直接带入签约页，跳过重复填写
+    const { imei, sn } = this.data.formData;
+    const phoneModel = queryResult.productName || '';
+    const queryParts = [
+      'orderId=' + encodeURIComponent(String(orderId)),
+      'imei=' + encodeURIComponent(imei || ''),
+      'sn=' + encodeURIComponent(sn || ''),
+      'phoneModel=' + encodeURIComponent(phoneModel),
+      'skipDeviceInfo=true'
+    ];
+
     wx.navigateTo({
-      url: '/pages/contract-sign/contract-sign?orderId=' + orderId
+      url: '/pages/contract-sign/contract-sign?' + queryParts.join('&')
     });
   },
 

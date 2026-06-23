@@ -132,6 +132,10 @@ Page({
     // 判断是否已签约：signatureDate, signatureImei, signatureModel 均存在即为已签约
     const isSigned = !!(item.signatureDate && item.signatureImei && item.signatureModel);
 
+    // 根据 skipApiCall 判断登记类型
+    const isNewPhoneRegister = item.skipApiCall === true || item.skipApiCall === 1;
+    const registerTypeLabel = isNewPhoneRegister ? '新手机登记' : '旧手机识别';
+
     // 处理签名图片完整路径
     let fullSignaturePath = '';
     if (item.signaturePath) {
@@ -145,6 +149,8 @@ Page({
       warrantyStatus,
       activatedAtQuery,
       isSigned,
+      isNewPhoneRegister,
+      registerTypeLabel,
       fullSignaturePath
     };
   },
