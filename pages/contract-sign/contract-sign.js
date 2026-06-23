@@ -519,12 +519,39 @@ Page({
     });
 
     try {
-      const res = await uploadFile({
-        url: uploadUrl,
-        filePath: tempFilePath,
-        name: 'signatureFile',
-        formData
-      });
+      // 带重试的上传：解决 ECONNRESET 等瞬时网络故障
+      let res;
+      const MAX_RETRIES = 3;
+      const RETRY_DELAYS = [1000, 2000, 3000]; // 递增等待
+
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          if (attempt > 0) {
+            wx.showLoading({ title: `正在重试(${attempt + 1}/${MAX_RETRIES})...` });
+          }
+          res = await uploadFile({
+            url: uploadUrl,
+            filePath: tempFilePath,
+            name: 'signatureFile',
+            formData
+          });
+          break; // 成功则退出重试循环
+        } catch (uploadErr) {
+          const isNetworkError = uploadErr && (
+            uploadErr.errMsg && (
+              uploadErr.errMsg.includes('ECONNRESET') ||
+              uploadErr.errMsg.includes('timeout') ||
+              uploadErr.errMsg.includes('fail')
+            )
+          );
+          if (attempt < MAX_RETRIES - 1 && isNetworkError) {
+            console.warn(`[signContract] 上传失败，${RETRY_DELAYS[attempt]}ms 后重试 (${attempt + 1}/${MAX_RETRIES})`, uploadErr);
+            await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt]));
+            continue;
+          }
+          throw uploadErr; // 非网络错误或已达最大重试次数，直接抛出
+        }
+      }
 
       console.log('[signContract] 后端原始响应 →', {
         statusCode: res.statusCode,

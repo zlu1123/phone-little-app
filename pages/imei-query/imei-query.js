@@ -782,6 +782,13 @@ Page({
   },
 
   // 下载网络图片到本地临时文件
+  // 判断是否为外部 HTTP URL（排除微信内部文件路径如 http://tmp/、http://usr/ 等）
+  isExternalUrl(url) {
+    return /^https?:\/\//i.test(url) && !/^https?:\/\/(tmp|usr|store|wxfile)\//i.test(url);
+  },
+
+  // 下载网络图片到本地临时文件
+  // 注意：仅用于外部 URL（如 CDN 图片），微信内部文件路径（http://tmp/、http://usr/）会直接使用
   downloadImageToTempFile(url) {
     return new Promise((resolve, reject) => {
       // 从 URL 中提取扩展名作为兜底，避免 iOS 自动生成的临时文件无后缀
@@ -828,7 +835,7 @@ Page({
         throw new Error('未获取到可识别的图片路径');
       }
 
-      const localFilePath = /^https?:\/\//i.test(originalFilePath)
+      const localFilePath = this.isExternalUrl(originalFilePath)
         ? await this.downloadImageToTempFile(originalFilePath)
         : originalFilePath;
 
@@ -929,8 +936,8 @@ Page({
         throw new Error('未获取到图片路径');
       }
 
-      // wx.uploadFile 只能上传本地文件路径，如果是网络图先下载
-      const localFilePath = /^https?:\/\//i.test(originalFilePath)
+      // wx.uploadFile 只能上传本地文件路径，如果是外部网络图先下载
+      const localFilePath = this.isExternalUrl(originalFilePath)
         ? await this.downloadImageToTempFile(originalFilePath)
         : originalFilePath;
 
@@ -1207,8 +1214,8 @@ Page({
 
       if (imageUrl) {
         // 有图片时：使用 uploadFile 发送 POST multipart/form-data，图片字段为 img
-        // wx.uploadFile 需要本地文件路径，如果是网络图先下载
-        const localFilePath = /^https?:\/\//i.test(imageUrl)
+        // wx.uploadFile 需要本地文件路径，如果是外部网络图先下载
+        const localFilePath = this.isExternalUrl(imageUrl)
           ? await this.downloadImageToTempFile(imageUrl)
           : imageUrl;
 
@@ -1409,19 +1416,8 @@ Page({
       return;
     }
 
-    // 新手机场景：设备信息已查询完毕，直接带入签约页，跳过重复填写
-    const { imei, sn } = this.data.formData;
-    const phoneModel = queryResult.productName || '';
-    const queryParts = [
-      'orderId=' + encodeURIComponent(String(orderId)),
-      'imei=' + encodeURIComponent(imei || ''),
-      'sn=' + encodeURIComponent(sn || ''),
-      'phoneModel=' + encodeURIComponent(phoneModel),
-      'skipDeviceInfo=true'
-    ];
-
     wx.navigateTo({
-      url: '/pages/contract-sign/contract-sign?' + queryParts.join('&')
+      url: '/pages/contract-sign/contract-sign?orderId=' + orderId
     });
   },
 
