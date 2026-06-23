@@ -8,121 +8,143 @@
     bind:click-left="handleBack"
   ></van-nav-bar>
 
-  <!-- 加载中 -->
-  <view wx:if="{{ isLoading }}" class="loading-wrapper">
-    <van-loading type="spinner" color="#1989fa" size="24px">加载中...</van-loading>
-  </view>
-
-  <!-- 订单列表 -->
-  <block wx:else>
-    <view wx:if="{{ orderList.length > 0 }}" class="review-list">
+  <!-- 骨架屏加载态 -->
+  <van-skeleton title row="3" loading="{{ isLoading }}" animate>
+    <!-- 列表内容 -->
+    <block wx:if="{{ orderList.length > 0 }}">
       <view class="list-header">
-        <text class="list-count">共 {{ total }} 条待审核订单</text>
+        <view class="list-count">共 {{ total }} 条待审核订单</view>
       </view>
 
-      <view
-        wx:for="{{ orderList }}"
-        wx:key="id"
-        class="review-item"
-      >
-        <view class="review-item__info">
-          <view class="review-item__name">{{ item.name }}</view>
-          <view class="review-item__detail" wx:if="{{ item.phoneNum || item.remark }}">
-            <text class="label">手机号：</text>
-            <text class="value">{{ item.phoneNum || item.remark }}</text>
-          </view>
-          <view class="review-item__detail" wx:if="{{ item.signatureImei }}">
-            <text class="label">签约IMEI：</text>
-            <text class="value">{{ item.signatureImei }}</text>
-          </view>
-          <view class="review-item__detail" wx:if="{{ item.createTime }}">
-            <text class="label">提交时间：</text>
-            <text class="value">{{ item.createTime }}</text>
-          </view>
-        </view>
+      <van-cell-group inset>
+        <block wx:for="{{ orderList }}" wx:key="id">
+          <van-cell
+            title="{{ item.name }}"
+            use-label-slot
+            custom-style="padding-bottom: 0;"
+          >
+            <view slot="label" class="cell-label">
+              <view wx:if="{{ item.orderId }}" class="cell-label__row">
+                <van-icon name="orders-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
+                <text>订单ID：{{ item.orderId }}</text>
+              </view>
+              <view wx:if="{{ item.infoId }}" class="cell-label__row">
+                <van-icon name="contact-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
+                <text>留资ID：{{ item.infoId }}</text>
+              </view>
+              <view wx:if="{{ item.signatureImei }}" class="cell-label__row">
+                <van-icon name="label-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
+                <text>签约IMEI：{{ item.signatureImei }}</text>
+              </view>
+              <view wx:if="{{ item.phoneNum }}" class="cell-label__row">
+                <van-icon name="phone-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
+                <text>手机号：{{ item.phoneNum }}</text>
+              </view>
+              <view wx:if="{{ item.remark }}" class="cell-label__row">
+                <van-icon name="comment-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
+                <text>备注：{{ item.remark }}</text>
+              </view>
+              <view wx:if="{{ item.createTime }}" class="cell-label__row">
+                <van-icon name="clock-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
+                <text>{{ item.createTime }}</text>
+              </view>
+            </view>
+          </van-cell>
 
-        <view class="review-item__actions">
-          <van-button
-            size="small"
-            round
-            type="danger"
-            plain
-            loading="{{ isOperating }}"
-            data-index="{{ index }}"
-            data-action="reject"
-            bind:click="handleReview"
-            custom-style="margin-bottom: 12rpx;"
-          >
-            驳回
-          </van-button>
-          <van-button
-            size="small"
-            round
-            type="primary"
-            loading="{{ isOperating }}"
-            data-index="{{ index }}"
-            data-action="approve"
-            bind:click="handleReview"
-          >
-            通过
-          </van-button>
-        </view>
-      </view>
-    </view>
+          <!-- 操作按钮 -->
+          <view class="cell-actions">
+            <van-button
+              size="small"
+              round
+              type="danger"
+              plain
+              hairline
+              loading="{{ isOperating }}"
+              data-index="{{ index }}"
+              data-action="reject"
+              bind:click="handleReview"
+            >
+              驳回
+            </van-button>
+            <van-button
+              size="small"
+              round
+              type="primary"
+              hairline
+              loading="{{ isOperating }}"
+              data-index="{{ index }}"
+              data-action="approve"
+              bind:click="handleReview"
+            >
+              通过
+            </van-button>
+          </view>
+        </block>
+      </van-cell-group>
+    </block>
 
     <!-- 空态 -->
-    <view wx:else class="empty-state">
-      <van-icon name="orders-o" size="48" color="#c8c9cc" />
-      <view class="empty-text">暂无待审核订单</view>
-    </view>
+    <van-empty
+      wx:elif="{{ !isLoading }}"
+      image="search"
+      description="暂无待审核订单"
+    />
+  </van-skeleton>
 
-    <!-- 加载更多 -->
-    <view wx:if="{{ loadingMore }}" class="loading-more">
-      <van-loading type="spinner" color="#1989fa" size="16px">加载更多...</van-loading>
-    </view>
-  </block>
+  <!-- 加载更多 -->
+  <view wx:if="{{ loadingMore }}" class="loading-more">
+    <van-loading type="spinner" color="#1989fa" size="16px">加载更多...</van-loading>
+  </view>
 
   <!-- 金额输入弹窗 -->
-  <view wx:if="{{ showAmountDialog }}" class="amount-dialog-overlay" catchtouchmove="{{ true }}">
-    <view class="amount-dialog">
-      <view class="amount-dialog__title">请输入赔付金额</view>
-      <view class="amount-dialog__input-wrap">
-        <text class="amount-dialog__prefix">¥</text>
-        <input
-          class="amount-dialog__input"
-          type="digit"
-          placeholder="0.00"
-          value="{{ amountInput }}"
-          bindinput="handleAmountInput"
-          focus="{{ true }}"
-        />
-      </view>
-      <view class="amount-dialog__actions">
-        <van-button size="small" round plain bindtap="handleCloseAmountDialog">取消</van-button>
-        <van-button size="small" round type="primary" bindtap="handleAmountConfirm">确定</van-button>
-      </view>
+  <van-dialog
+    use-slot
+    show="{{ showAmountDialog }}"
+    title="请输入赔付金额"
+    show-cancel-button
+    confirm-button-text="确定"
+    before-close="{{ beforeAmountClose }}"
+    bind:close="onAmountDialogClosed"
+    bind:cancel="handleCloseAmountDialog"
+  >
+    <view class="dialog-body">
+      <van-field
+        value="{{ amountInput }}"
+        placeholder="0.00"
+        type="digit"
+        label="¥"
+        input-align="left"
+        border="{{ true }}"
+        custom-style="background: #f7f8fa; border-radius: 8rpx; padding: 12rpx 16rpx;"
+        bind:change="handleAmountInput"
+      />
     </view>
-  </view>
+  </van-dialog>
 
-  <!-- 驳回原因弹窗 -->
-  <view wx:if="{{ showRejectDialog }}" class="amount-dialog-overlay" catchtouchmove="{{ true }}">
-    <view class="amount-dialog">
-      <view class="amount-dialog__title">请填写驳回原因</view>
-      <view class="reject-reason__input-wrap">
-        <textarea
-          class="reject-reason__textarea"
-          placeholder="请输入驳回原因"
-          value="{{ rejectReasonInput }}"
-          bindinput="handleRejectReasonInput"
-          focus="{{ true }}"
-          maxlength="200"
-          auto-height
-        />
-      </view>
-      <view class="amount-dialog__actions">
-        <van-button size="small" round plain bindtap="handleCloseRejectDialog">取消</van-button>
-        <van-button size="small" round type="danger" bindtap="handleRejectReasonConfirm">确定驳回</van-button>
-      </view>
+  <!-- 驳回原因输入弹窗 -->
+  <van-dialog
+    use-slot
+    show="{{ showRejectDialog }}"
+    title="请填写驳回原因"
+    show-cancel-button
+    confirm-button-text="确定驳回"
+    before-close="{{ beforeRejectClose }}"
+    bind:close="onRejectDialogClosed"
+    bind:cancel="handleCloseRejectDialog"
+  >
+    <view class="dialog-body">
+      <van-field
+        value="{{ rejectReasonInput }}"
+        placeholder="请输入驳回原因"
+        type="textarea"
+        autosize="{{ true }}"
+        maxlength="200"
+        border="{{ true }}"
+        custom-style="background: #f7f8fa; border-radius: 8rpx; padding: 12rpx 16rpx;"
+        bind:change="handleRejectReasonInput"
+      />
     </view>
-  </view>
+  </van-dialog>
+
+  <van-toast id="van-toast" />
 </view>

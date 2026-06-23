@@ -19,7 +19,8 @@ Page({
 
     // 驳回原因弹窗
     showRejectDialog: false,
-    rejectReasonInput: ''
+    rejectReasonInput: '',
+    pendingAction: ''
   },
 
   onLoad() {
@@ -104,85 +105,114 @@ Page({
     if (!order) return;
 
     if (action === 'approve') {
-      // 通过：先弹出金额输入框
       this.setData({
         showAmountDialog: true,
         amountInput: '',
-        currentReviewIndex: index
+        currentReviewIndex: index,
+        pendingAction: 'approve'
       });
     } else {
-      // 驳回：弹出原因输入框
       this.setData({
         showRejectDialog: true,
         rejectReasonInput: '',
-        currentReviewIndex: index
+        currentReviewIndex: index,
+        pendingAction: 'reject'
       });
     }
   },
 
-  // 金额输入
-  handleAmountInput(e) {
-    this.setData({ amountInput: e.detail.value });
+  // 金额弹窗 before-close：校验金额有效性
+  beforeAmountClose(action) {
+    return new Promise((resolve) => {
+      if (action === 'confirm') {
+        const amount = parseFloat(this.data.amountInput);
+        if (isNaN(amount) || amount <= 0) {
+          wx.showToast({ title: '请输入有效的赔付金额', icon: 'none' });
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      } else {
+        resolve(true);
+      }
+    });
   },
 
-  // 金额输入确认 → 二次确认
-  handleAmountConfirm() {
+  // 金额弹窗关闭后 → 二次确认
+  onAmountDialogClosed() {
+    if (this.data.pendingAction !== 'approve') return;
     const amount = parseFloat(this.data.amountInput);
-    if (isNaN(amount) || amount <= 0) {
-      wx.showToast({ title: '请输入有效的赔付金额', icon: 'none' });
-      return;
-    }
-
-    // 关闭金额弹窗
-    this.setData({ showAmountDialog: false });
+    if (isNaN(amount) || amount <= 0) return;
 
     const index = this.data.currentReviewIndex;
-
-    // 二次确认
     wx.showModal({
       title: '确认通过',
       content: `赔付金额：¥${amount.toFixed(2)}\n确定通过该订单的审核吗？`,
       success: (res) => {
-        if (!res.confirm) return;
+        if (!res.confirm) {
+          this.setData({ pendingAction: '' });
+          return;
+        }
         this.submitReview(index, 1, amount, '完成');
       }
     });
   },
 
+  // 金额输入
+  handleAmountInput(e) {
+    this.setData({ amountInput: e.detail });
+  },
+
   // 关闭金额弹窗
   handleCloseAmountDialog() {
-    this.setData({ showAmountDialog: false, currentReviewIndex: -1 });
+    this.setData({ showAmountDialog: false, currentReviewIndex: -1, pendingAction: '' });
   },
 
-  // 驳回原因输入
-  handleRejectReasonInput(e) {
-    this.setData({ rejectReasonInput: e.detail.value });
+  // 驳回弹窗 before-close：校验原因非空
+  beforeRejectClose(action) {
+    return new Promise((resolve) => {
+      if (action === 'confirm') {
+        const reason = (this.data.rejectReasonInput || '').trim();
+        if (!reason) {
+          wx.showToast({ title: '请填写驳回原因', icon: 'none' });
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      } else {
+        resolve(true);
+      }
+    });
   },
 
-  // 驳回原因确认
-  handleRejectReasonConfirm() {
-    const reason = this.data.rejectReasonInput.trim();
-    if (!reason) {
-      wx.showToast({ title: '请填写驳回原因', icon: 'none' });
-      return;
-    }
+  // 驳回弹窗关闭后 → 二次确认
+  onRejectDialogClosed() {
+    if (this.data.pendingAction !== 'reject') return;
+    const reason = (this.data.rejectReasonInput || '').trim();
+    if (!reason) return;
 
-    this.setData({ showRejectDialog: false });
     const index = this.data.currentReviewIndex;
-
     wx.showModal({
       title: '确认驳回',
       content: `驳回原因：${reason}\n确定驳回该订单吗？`,
       success: (res) => {
-        if (!res.confirm) return;
+        if (!res.confirm) {
+          this.setData({ pendingAction: '' });
+          return;
+        }
         this.submitReview(index, 2, 0, '', reason);
       }
     });
   },
 
+  // 驳回原因输入
+  handleRejectReasonInput(e) {
+    this.setData({ rejectReasonInput: e.detail });
+  },
+
   // 关闭驳回弹窗
   handleCloseRejectDialog() {
-    this.setData({ showRejectDialog: false, currentReviewIndex: -1 });
+    this.setData({ showRejectDialog: false, currentReviewIndex: -1, pendingAction: '' });
   },
 
   // 提交审核
