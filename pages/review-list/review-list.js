@@ -1,5 +1,14 @@
 const { buildApiUrl, API_ENDPOINTS } = require('../../config');
+const { formatDateTime } = require('../../utils/date');
 const { request } = require('../../utils/request');
+
+/** 格式化列表中每条记录的时间字段 */
+const formatRowsTime = (rows) =>
+  (rows || []).map((row) => ({
+    ...row,
+    createTime: formatDateTime(row.createTime, row.createTime || ''),
+    updateTime: formatDateTime(row.updateTime, row.updateTime || '')
+  }));
 
 Page({
   data: {
@@ -53,7 +62,7 @@ Page({
       success: (res) => {
         const body = res.data;
         if (body.code === 200 && Array.isArray(body.rows)) {
-          const rows = body.rows;
+          const rows = formatRowsTime(body.rows);
           this.setData({
             orderList: rows,
             total: body.total || 0,
@@ -83,7 +92,7 @@ Page({
       success: (res) => {
         const body = res.data;
         if (body.code === 200 && Array.isArray(body.rows)) {
-          const rows = body.rows;
+          const rows = formatRowsTime(body.rows);
           const newList = this.data.orderList.concat(rows);
           this.setData({
             orderList: newList,

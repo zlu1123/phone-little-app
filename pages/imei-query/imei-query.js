@@ -515,8 +515,14 @@ Page({
   // 下载网络图片到本地临时文件
   downloadImageToTempFile(url) {
     return new Promise((resolve, reject) => {
+      // 从 URL 中提取扩展名作为兜底，避免 iOS 自动生成的临时文件无后缀
+      const extMatch = url.match(/\.(jpe?g|png|gif|bmp|webp)(\?|#|$)/i);
+      const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+      const filePath = `${wx.env.USER_DATA_PATH}/download_${Date.now()}.${ext}`;
+
       wx.downloadFile({
         url,
+        filePath,
         success(res) {
           if (
             res.statusCode >= 200 &&

@@ -30,6 +30,12 @@ const normalizeDateString = (input) => {
   // "yyyy/MM/dd ..." -> "yyyy-MM-dd ..."
   str = str.replace(/\//g, '-');
 
+  // 补零月日：iOS 的 new Date() 严格要求 ISO 格式，月日必须两位
+  // "2024-7-5" -> "2024-07-05"、 "2024-12-1" -> "2024-12-01"
+  str = str.replace(/^(\d{4})-(\d{1,2})-(\d{1,2})/, (_, y, m, d) =>
+    `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+  );
+
   // "yyyy-MM-dd HH:mm:ss" -> "yyyy-MM-ddTHH:mm:ss"
   // 仅替换日期与时间之间的第一个空格
   str = str.replace(/^(\d{4}-\d{1,2}-\d{1,2})\s+(\d{1,2}:\d{1,2}(?::\d{1,2}(?:\.\d+)?)?)/, '$1T$2');
@@ -66,8 +72,23 @@ const parseDateTime = (input) => {
   return date ? date.getTime() : NaN;
 };
 
+/**
+ * 将日期格式化为 yyyy-MM-dd HH:mm:ss
+ * @param {string|number|Date} input
+ * @param {string} [fallback] 解析失败时的兜底值，默认返回原值
+ * @returns {string}
+ */
+const formatDateTime = (input, fallback) => {
+  const date = parseDate(input);
+  if (!date) return fallback !== undefined ? fallback : String(input ?? '');
+
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
+
 module.exports = {
   parseDate,
   parseDateTime,
-  normalizeDateString
+  normalizeDateString,
+  formatDateTime
 };
