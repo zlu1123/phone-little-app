@@ -372,9 +372,9 @@ Page({
         method: 'GET'
       });
       const data = res.data;
-      if (data.code === 200 && Array.isArray(data.rows) && data.rows.length > 0) {
+      if (data.code === 200 && Array.isArray(data.data) && data.data.length > 0) {
         this.setData({
-          modelOptions: data.rows.map(item => ({ name: item.name, value: item.code }))
+          modelOptions: data.data.map(item => ({ name: item.name, value: item.code }))
         });
       } else {
         this.setFallbackModelOptions();
@@ -589,8 +589,8 @@ Page({
       });
 
       const data = res.data;
-      if (data.code === 200 && Array.isArray(data.rows) && data.rows.length > 0) {
-        const modelOptions = data.rows.map(item => ({
+      if (data.code === 200 && Array.isArray(data.data) && data.data.length > 0) {
+        const modelOptions = data.data.map(item => ({
           name: item.name,
           value: item.code
         }));
