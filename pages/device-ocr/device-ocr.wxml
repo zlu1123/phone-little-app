@@ -1,0 +1,251 @@
+<!-- pages/device-ocr/device-ocr.wxml -->
+<view class="ocr-page">
+  <van-nav-bar
+    title="保修查询"
+    fixed="{{true}}"
+    placeholder="{{true}}"
+    left-arrow
+    bind:click-left="handleBackToDeviceSource"
+    z-index="{{100}}"
+  ></van-nav-bar>
+
+  <!-- 步骤条 -->
+  <view class="steps-wrapper">
+    <van-steps steps="{{ steps }}" active="{{ activeStep }}" active-icon="success" active-color="#1989fa" />
+  </view>
+
+  <view class="content-container">
+    <!-- 步骤1：上传区域 -->
+    <view class="card-section">
+      <view class="section-header">
+        <view class="title">1. 上传设备图片</view>
+        <view class="subtitle">请先选择手机型号，再拍摄或上传包含序列号/IMEI的清晰图片</view>
+      </view>
+
+      <view class="model-select-wrapper">
+        <van-skeleton title row="1" loading="{{ isFetchingModel }}">
+          <van-cell-group inset class="model-select-group">
+            <van-field
+              value="{{ selectedModelName }}"
+              label="手机型号"
+              title-width="5em"
+              placeholder="请选择手机型号（必选）"
+              readonly
+              is-link
+              required
+              bind:click-input="onShowModelPicker"
+              bind:click="onShowModelPicker"
+              disabled="{{ isRecognizing || activeStep >= 2 }}"
+            />
+          </van-cell-group>
+        </van-skeleton>
+      </view>
+
+      <view class="upload-wrapper">
+        <van-uploader
+          bind:after-read="afterRead"
+          bind:delete="onDelete"
+          accept="image"
+          max-count="1"
+          file-list="{{ pictureList }}"
+          preview-full-image="{{true}}"
+          disabled="{{ isRecognizing || activeStep >= 2 }}"
+          deletable="{{ !isRecognizing && activeStep < 2 }}"
+          class="custom-uploader"
+          use-slot="{{ true }}"
+          image-fit="aspectFit"
+        >
+          <view class="upload-area">
+            <view class="upload-icon-wrapper">
+              <van-icon name="scan" size="48" color="#1989fa" />
+            </view>
+            <view class="upload-text">点击拍摄/上传图片</view>
+            <view class="upload-hint">自动识别 IMEI 和序列号</view>
+          </view>
+        </van-uploader>
+      </view>
+
+      <view wx:if="{{ isRecognizing }}" class="loading-wrapper">
+        <van-loading type="spinner" color="#1989fa" size="24px">正在智能识别中...</van-loading>
+      </view>
+    </view>
+
+    <!-- 步骤2：识别结果编辑表单 -->
+    <view wx:if="{{ activeStep >= 1 }}" class="card-section">
+      <view class="section-header">
+        <view class="title">2. 确认设备信息</view>
+        <view class="subtitle">系统已自动识别，如有误请手动修改</view>
+      </view>
+
+      <van-cell-group inset class="form-group code-form-group">
+        <van-field
+          value="{{ formData.sn }}"
+          label="序列号"
+          title-width="4em"
+          placeholder="请输入或识别序列号"
+          maxlength="20"
+          clearable="{{true}}"
+          custom-class="code-field"
+          input-class="code-field-input"
+          bind:change="onSnChange"
+        />
+        <van-field
+          value="{{ formData.imei }}"
+          label="IMEI1"
+          title-width="4em"
+          placeholder="请输入或识别IMEI1"
+          type="number"
+          maxlength="15"
+          clearable="{{true}}"
+          custom-class="code-field"
+          input-class="code-field-input"
+          bind:change="onImeiChange"
+        />
+        <van-field
+          value="{{ formData.imei2 }}"
+          label="IMEI2"
+          title-width="4em"
+          placeholder="请输入或识别IMEI2"
+          type="number"
+          maxlength="15"
+          clearable="{{true}}"
+          custom-class="code-field"
+          input-class="code-field-input"
+          bind:change="onImei2Change"
+        />
+      </van-cell-group>
+
+      <view class="action-btn">
+        <van-button
+          round="{{true}}"
+          block="{{true}}"
+          type="primary"
+          bind:click="handleQuery"
+          loading="{{ isQuerying }}"
+          loading-text="查询中..."
+          color="linear-gradient(to right, #1989fa, #0570db)"
+        >
+          查询保修信息
+        </van-button>
+      </view>
+    </view>
+
+    <!-- 步骤3：查询结果展示 -->
+    <view id="step-3-card" wx:if="{{ activeStep >= 2 && queryResult }}" class="card-section result-card">
+      <view class="section-header">
+        <view class="title">3. 查询结果</view>
+        <view class="subtitle">
+          <van-tag type="{{ queryResult.isExpired ? 'danger' : 'success' }}" size="medium">
+            {{ queryResult.warrantyStatus }}
+          </van-tag>
+        </view>
+      </view>
+
+      <view class="result-content">
+        <view class="info-item">
+          <text class="label">设备名称</text>
+          <text class="value">{{ queryResult.productName }}</text>
+        </view>
+        <view class="info-item">
+          <text class="label">激活时间</text>
+          <text class="value">{{ queryResult.activationDate }}</text>
+        </view>
+        <view class="info-item" wx:if="{{ queryResult.coverageDate && queryResult.coverageDate !== '未知' }}">
+          <text class="label">保修截止</text>
+          <text class="value">{{ queryResult.coverageDate }}</text>
+        </view>
+        <view class="info-item">
+          <text class="label">保修状态</text>
+          <text class="value {{ queryResult.isExpired ? 'text-danger' : 'text-success' }}">
+            {{ queryResult.warrantyStatus }}
+          </text>
+        </view>
+      </view>
+
+      <view class="action-btn">
+        <van-button
+          wx:if="{{ queryResult && !queryResult.isExpired }}"
+          round="{{true}}"
+          block="{{true}}"
+          type="success"
+          bind:click="handleJumpToOfficialAccount"
+          icon="wechat"
+          custom-class="mb-3"
+          color="linear-gradient(to right, #07c160, #06ad56)"
+        >
+          前往亚丁屏卫
+        </van-button>
+
+        <van-button
+          wx:if="{{ queryResult && queryResult.isExpired }}"
+          round="{{true}}"
+          block="{{true}}"
+          type="warning"
+          bind:click="handleShowContract"
+          icon="description"
+          custom-class="mb-3"
+          color="linear-gradient(to right, #ff976a, #ee0a24)"
+        >
+          前往查看协议并签名
+        </van-button>
+
+        <van-button round="{{true}}" block="{{true}}" plain="{{true}}" type="primary" bind:click="handleReset" icon="replay">
+          重新查询
+        </van-button>
+
+        <view wx:if="{{ queryResult.isExpired }}" class="tip-text">
+          <van-icon name="info-o"></van-icon> 设备已过保，无法享受相关服务
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 手机型号选择弹窗 -->
+  <van-popup show="{{ showModelPicker }}" position="bottom" bind:close="onCloseModelPicker" round>
+    <van-picker
+      show-toolbar
+      title="选择手机型号"
+      columns="{{ modelOptions }}"
+      value-key="name"
+      bind:cancel="onCloseModelPicker"
+      bind:confirm="onSelectModel"
+    />
+  </van-popup>
+
+  <!-- 公众号引导弹窗 -->
+  <van-popup
+    show="{{ showOAModal }}"
+    round
+    closeable
+    close-icon="cross"
+    custom-class="oa-modal"
+    lock-scroll="{{ true }}"
+    overlay="{{ true }}"
+    bind:close="handleCloseOAModal"
+    bind:click-overlay="handleCloseOAModal"
+    catch:touchmove="handleNoop"
+  >
+    <view class="oa-modal__inner" catch:tap="handleNoop" catch:touchmove="handleNoop">
+      <view class="oa-modal__header">
+        <view class="oa-modal__icon">
+          <van-icon name="wechat" size="48" color="#07c160" />
+        </view>
+        <view class="oa-modal__title">扫码关注「亚丁屏卫」</view>
+        <view class="oa-modal__subtitle">长按二维码识别，立即享受保修服务</view>
+      </view>
+      <view class="oa-qrcode-wrapper">
+        <image
+          class="oa-qrcode-image"
+          src="/images/yading-qrcode.png"
+          mode="aspectFit"
+          show-menu-by-longpress="{{ true }}"
+          aria-label="亚丁屏卫公众号二维码"
+        />
+      </view>
+      <view class="oa-modal__tip">
+        <van-icon name="info-o" size="14" color="#969799" />
+        <text>长按图片可保存二维码到相册</text>
+      </view>
+    </view>
+  </van-popup>
+</view>

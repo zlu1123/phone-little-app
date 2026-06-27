@@ -1,0 +1,67 @@
+/* pages/device-form/device-form.wxss */
+page {
+  height: auto !important;
+  overflow-y: auto !important;
+  display: block !important;
+  padding-top: env(safe-area-inset-top);
+  box-sizing: border-box;
+}
+
+.df-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #eef3fb 0%, #f7f8fa 40%);
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.df-container {
+  padding: 40rpx 20rpx;
+}
+
+.df-card {
+  width: 100%;
+  max-width: 680rpx;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 32rpx 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(25, 137, 250, 0.08);
+}
+
+.df-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40rpx;
+}
+.df-icon {
+  width: 120rpx;
+  height: 120rpx;
+  background: linear-gradient(
+    135deg,
+    rgba(25, 137, 250, 0.08) 0%,
+    rgba(5, 112, 219, 0.12) 100%
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28rpx;
+}
+.df-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12rpx;
+}
+.df-subtitle {
+  font-size: 26rpx;
+  color: #969799;
+}
+
+.df-actions {
+  margin-top: 40rpx;
+}
+
+.mt-3 {
+  margin-top: 24rpx;
+}

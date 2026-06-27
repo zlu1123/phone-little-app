@@ -1,0 +1,89 @@
+<!-- pages/usage-duration/usage-duration.wxml -->
+<view class="ud-page">
+  <van-nav-bar
+    title="旧手机使用时长"
+    fixed="{{true}}"
+    placeholder="{{true}}"
+    left-arrow
+    bind:click-left="handleBack"
+    z-index="{{100}}"
+  ></van-nav-bar>
+
+  <view class="ud-container">
+    <view class="ud-card">
+      <view class="ud-header">
+        <view class="ud-icon">
+          <van-icon name="clock-o" size="48" color="#ff976a" />
+        </view>
+        <view class="ud-title">旧手机使用了多久？</view>
+        <view class="ud-subtitle">请选择旧设备的使用时长范围</view>
+      </view>
+
+      <view class="ud-btns">
+        <van-button
+          round="{{true}}"
+          block="{{true}}"
+          plain="{{true}}"
+          type="info"
+          loading="{{ isSubmitting }}"
+          disabled="{{ isSubmitting }}"
+          data-choice="over24"
+          bind:click="handleChoice"
+          custom-class="ud-btn"
+        >
+          大于24个月
+        </van-button>
+        <van-button
+          round="{{true}}"
+          block="{{true}}"
+          plain="{{true}}"
+          type="primary"
+          loading="{{ isSubmitting }}"
+          disabled="{{ isSubmitting }}"
+          data-choice="under24"
+          bind:click="handleChoice"
+          custom-class="ud-btn"
+        >
+          ≤24个月（2年内）
+        </van-button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公众号引导弹窗（使用超过24个月） -->
+  <van-popup
+    show="{{ showOAModal }}"
+    round
+    closeable
+    close-icon="cross"
+    custom-class="oa-modal"
+    lock-scroll="{{ true }}"
+    overlay="{{ true }}"
+    bind:close="handleCloseOAModal"
+    bind:click-overlay="handleCloseOAModal"
+    catch:touchmove="handleNoop"
+  >
+    <view class="oa-modal__inner" catch:tap="handleNoop" catch:touchmove="handleNoop">
+      <view class="oa-modal__header">
+        <view class="oa-modal__icon">
+          <van-icon name="wechat" size="48" color="#07c160" />
+        </view>
+        <view class="oa-modal__title">扫码关注「亚丁屏卫」</view>
+        <view class="oa-modal__subtitle">长按二维码识别，立即享受保修服务</view>
+      </view>
+      <view class="oa-qrcode-wrapper">
+        <image
+          class="oa-qrcode-image"
+          src="/images/yading-qrcode.png"
+          mode="aspectFit"
+          show-menu-by-longpress="{{ true }}"
+          aria-label="亚丁屏卫公众号二维码"
+        />
+      </view>
+      <view class="oa-modal__tip">
+        <van-icon name="info-o" size="14" color="#969799" />
+        <text>长按图片可保存二维码到相册</text>
+      </view>
+    </view>
+  </van-popup>
+</view>

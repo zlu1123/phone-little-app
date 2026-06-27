@@ -79,6 +79,14 @@ const joinUrl = (baseUrl, path) => {
 const buildApiUrl = path => joinUrl(getApiBase(), path);
 
 /**
+ * 业务常量：统一维护可调阈值
+ */
+const BUSINESS_CONSTANTS = {
+  // 旧手机使用时长阈值（月），≥此值走亚丁屏卫，<此值走签协议
+  OLD_PHONE_USAGE_MONTHS_THRESHOLD: 24
+};
+
+/**
  * 功能开关：统一在这里维护
  */
 const FEATURE_FLAGS = {
@@ -110,6 +118,7 @@ const isWechatOcrEnabled = () => {
 module.exports = {
   API_BASE_BY_ENV,
   API_ENDPOINTS,
+  BUSINESS_CONSTANTS,
   FEATURE_FLAGS,
   buildApiUrl,
   getApiBase,

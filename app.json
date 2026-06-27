@@ -9,7 +9,11 @@
     "pages/agreement/agreement",
     "pages/contract-sign/contract-sign",
     "pages/compensation-order/compensation-order",
-    "pages/review-list/review-list"
+    "pages/review-list/review-list",
+    "pages/device-source/device-source",
+    "pages/device-ocr/device-ocr",
+    "pages/usage-duration/usage-duration",
+    "pages/device-form/device-form"
   ],
   "window": {
     "navigationBarTextStyle": "black",

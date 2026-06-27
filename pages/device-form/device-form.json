@@ -1,14 +1,13 @@
 {
+  "navigationStyle": "custom",
   "usingComponents": {
     "van-nav-bar": "@vant/weapp/nav-bar/index",
     "van-button": "@vant/weapp/button/index",
     "van-cell": "@vant/weapp/cell/index",
     "van-cell-group": "@vant/weapp/cell-group/index",
     "van-field": "@vant/weapp/field/index",
-    "van-loading": "@vant/weapp/loading/index",
     "van-icon": "@vant/weapp/icon/index",
-    "van-search": "@vant/weapp/search/index"
-  },
-  "navigationBarTitleText": "IMEI查询",
-  "navigationStyle": "custom"
+    "van-popup": "@vant/weapp/popup/index",
+    "van-picker": "@vant/weapp/picker/index"
+  }
 }

@@ -1,0 +1,132 @@
+<!-- pages/device-form/device-form.wxml -->
+<view class="df-page">
+  <van-nav-bar
+    title="请填写手机信息"
+    fixed="{{true}}"
+    placeholder="{{true}}"
+    left-arrow
+    bind:click-left="handleBack"
+    z-index="{{100}}"
+  ></van-nav-bar>
+
+  <view class="df-container">
+    <view class="df-card">
+      <view class="df-header">
+        <view class="df-icon">
+          <van-icon name="records-o" size="48" color="#1989fa" />
+        </view>
+        <view class="df-title">请填写手机信息</view>
+        <view class="df-subtitle">请填写您需要投保的手机信息</view>
+      </view>
+
+      <!-- 手机类型选择 -->
+      <van-cell-group inset>
+        <van-field
+          value="{{ selectedModelName }}"
+          label="手机类型"
+          title-width="5em"
+          placeholder="请选择手机类型（必选）"
+          readonly
+          is-link
+          required
+          bind:click-input="showModelPicker"
+          bind:click="showModelPicker"
+        />
+      </van-cell-group>
+
+      <!-- 手动输入 -->
+      <van-cell-group inset custom-class="mt-3">
+        <van-field
+          value="{{ modelName }}"
+          label="手机型号"
+          title-width="5em"
+          placeholder="请输入手机型号（选填）"
+          maxlength="50"
+          clearable="{{true}}"
+          bind:change="onModelNameInput"
+        />
+        <van-field
+          value="{{ imei }}"
+          label="IMEI"
+          title-width="5em"
+          placeholder="请输入IMEI"
+          type="number"
+          maxlength="15"
+          clearable="{{true}}"
+          bind:change="onImeiInput"
+        />
+        <van-field
+          value="{{ sn }}"
+          label="SN"
+          title-width="5em"
+          placeholder="请输入SN"
+          maxlength="20"
+          clearable="{{true}}"
+          bind:change="onSnInput"
+        />
+      </van-cell-group>
+
+      <view class="df-actions">
+        <van-button
+          round="{{true}}"
+          block="{{true}}"
+          type="primary"
+          loading="{{ isSubmitting }}"
+          bind:click="handleSubmit"
+          color="linear-gradient(to right, #1989fa, #0570db)"
+        >
+          下一步
+        </van-button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 手机型号选择弹窗 -->
+  <van-popup show="{{ showModelPicker }}" position="bottom" bind:close="closeModelPicker" round>
+    <van-picker
+      show-toolbar
+      title="选择手机类型"
+      columns="{{ modelOptions }}"
+      value-key="name"
+      bind:cancel="closeModelPicker"
+      bind:confirm="onSelectModel"
+    />
+  </van-popup>
+
+  <!-- 公众号引导弹窗（使用超过24个月） -->
+  <van-popup
+    show="{{ showOAModal }}"
+    round
+    closeable
+    close-icon="cross"
+    custom-class="oa-modal"
+    lock-scroll="{{ true }}"
+    overlay="{{ true }}"
+    bind:close="handleCloseOAModal"
+    bind:click-overlay="handleCloseOAModal"
+    catch:touchmove="handleNoop"
+  >
+    <view class="oa-modal__inner" catch:tap="handleNoop" catch:touchmove="handleNoop">
+      <view class="oa-modal__header">
+        <view class="oa-modal__icon">
+          <van-icon name="wechat" size="48" color="#07c160" />
+        </view>
+        <view class="oa-modal__title">扫码关注「亚丁屏卫」</view>
+        <view class="oa-modal__subtitle">长按二维码识别，立即享受保修服务</view>
+      </view>
+      <view class="oa-qrcode-wrapper">
+        <image
+          class="oa-qrcode-image"
+          src="/images/yading-qrcode.png"
+          mode="aspectFit"
+          show-menu-by-longpress="{{ true }}"
+          aria-label="亚丁屏卫公众号二维码"
+        />
+      </view>
+      <view class="oa-modal__tip">
+        <van-icon name="info-o" size="14" color="#969799" />
+        <text>长按图片可保存二维码到相册</text>
+      </view>
+    </view>
+  </van-popup>
+</view>

@@ -1,0 +1,66 @@
+<!-- pages/device-source/device-source.wxml -->
+<view class="ds-page">
+  <!-- 顶部导航栏 -->
+  <van-nav-bar
+    title="保修查询助手"
+    left-arrow
+    fixed="{{true}}"
+    placeholder="{{true}}"
+    z-index="{{100}}"
+    bind:click-left="handleBack"
+  ></van-nav-bar>
+
+  <!-- 已登记用户信息提示条 -->
+  <view class="ds-user-bar">
+    <view class="ds-user-bar__left">
+      <van-icon name="user-o" size="16" color="#1989fa" custom-style="margin-right: 8rpx;" />
+      <text class="ds-user-bar__text">{{ leaveName }} {{ leavePhoneNum }}</text>
+    </view>
+    <view class="ds-user-bar__right" bind:tap="handleBackToLeaveInfo" hover-class="ds-user-bar__right--hover">
+      <text>切换</text>
+    </view>
+  </view>
+
+  <!-- 设备来源选择 -->
+  <view class="ds-container">
+    <view class="ds-card">
+      <view class="ds-header">
+        <view class="ds-icon">
+          <van-icon name="phone-o" size="48" color="#1989fa" />
+        </view>
+        <view class="ds-title">请选择设备来源</view>
+        <view class="ds-subtitle">请确认您当前使用的设备情况</view>
+      </view>
+
+      <van-cell-group inset custom-class="ds-cell-group">
+        <van-cell
+          title="有旧手机（正常）"
+          label="我有旧设备，需要查询保修信息"
+          is-link
+          data-source="has_old"
+          bind:click="handleSelectDeviceSource"
+        >
+          <van-icon slot="icon" name="checked" size="32" color="#07c160" custom-style="margin-right: 20rpx;" />
+        </van-cell>
+        <van-cell
+          title="有旧手机但已损坏/遗失"
+          label="旧设备已损坏或丢失，需登记新设备"
+          is-link
+          data-source="has_old_damaged"
+          bind:click="handleSelectDeviceSource"
+        >
+          <van-icon slot="icon" name="warning-o" size="32" color="#ff976a" custom-style="margin-right: 20rpx;" />
+        </van-cell>
+        <van-cell
+          title="无旧手机"
+          label="我没有旧设备，直接去签约"
+          is-link
+          data-source="no_old"
+          bind:click="handleSelectDeviceSource"
+        >
+          <van-icon slot="icon" name="clear" size="32" color="#ee0a24" custom-style="margin-right: 20rpx;" />
+        </van-cell>
+      </van-cell-group>
+    </view>
+  </view>
+</view>
