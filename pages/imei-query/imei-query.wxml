@@ -8,8 +8,32 @@
     z-index="{{100}}"
   ></van-nav-bar>
 
+  <!-- 当前店面信息（一直展示） -->
+  <view wx:if="{{ storeName }}" class="store-info-bar">
+    <view class="store-info-bar__inner">
+      <van-icon name="shop-o" size="16" color="#1989fa" />
+      <text class="store-info-bar__text">当前门店：{{ storeName }}</text>
+    </view>
+  </view>
+
+  <!-- 权限检查中 -->
+  <view wx:if="{{ isCheckingPermission }}" class="permission-loading">
+    <van-loading type="spinner" color="#1989fa" size="24px">加载中...</van-loading>
+  </view>
+
+  <!-- 无权限访问 -->
+  <view wx:elif="{{ !hasWechatRole }}" class="permission-denied">
+    <view class="permission-denied-card">
+      <view class="permission-denied-icon">
+        <van-icon name="warning-o" size="64" color="#ee0a24" />
+      </view>
+      <view class="permission-denied-title">暂无访问权限</view>
+      <view class="permission-denied-desc">您当前的账号角色无权限使用此功能，如有疑问请联系管理员</view>
+    </view>
+  </view>
+
   <!-- 留资界面 -->
-  <view class="leave-info-container">
+  <view wx:else class="leave-info-container">
     <view class="leave-info-card">
       <!-- 头部插图 -->
       <view class="leave-info-header">

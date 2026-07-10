@@ -9,13 +9,18 @@ Page({
       phone: '',
       userName: '',
       userId: '',
-      roles: []
+      roles: [],
+      storeName: '',
+      storeId: '',
+      canPlaceOrder: false
     },
     statusBarHeight: 0,
     navBarHeight: 44,
     isLoggedIn: false,
     isGuest: false,
-    hasUserRole: false
+    hasUserRole: false,
+    hasWechatRole: false,
+    canPlaceOrder: false
   },
 
   onLoad() {
@@ -65,7 +70,10 @@ Page({
       phone: '',
       userName: '',
       userId: '',
-      roles: []
+      roles: [],
+      storeName: '',
+      storeId: '',
+      canPlaceOrder: false
     };
 
     const now = Date.now();
@@ -81,19 +89,20 @@ Page({
       wx.removeStorageSync('userInfo');
     }
 
+    const defaultUserInfo = { nickName: '微信用户', avatarUrl: '', phone: '', userName: '', userId: '', roles: [], storeName: '', storeId: '', canPlaceOrder: false };
+
     this.setData({
       isLoggedIn: isValidLogin,
       isGuest,
-      userInfo:
-        isValidLogin || isGuest
-          ? userInfo
-          : { nickName: '微信用户', avatarUrl: '', phone: '', userName: '', userId: '', roles: [] }
+      userInfo: isValidLogin || isGuest ? userInfo : defaultUserInfo
     });
 
     // 判断是否包含 user 角色，用于展示待审核列表入口
     const roles = (isValidLogin && userInfo.roles) || [];
     this.setData({
-      hasUserRole: Array.isArray(roles) && roles.includes('user')
+      hasUserRole: Array.isArray(roles) && roles.includes('user'),
+      hasWechatRole: Array.isArray(roles) && roles.includes('wechat'),
+      canPlaceOrder: isValidLogin && userInfo.canPlaceOrder !== false
     });
 
     // 如果未登录且不是游客模式，跳转到登录页

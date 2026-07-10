@@ -30,6 +30,7 @@
     <van-cell-group inset>
       <van-cell title="账号" value="{{ userInfo.userName }}" icon="phone-o" />
       <van-cell title="手机号" value="{{ userInfo.phone || '未绑定' }}" icon="phone-circle-o" />
+      <van-cell wx:if="{{ userInfo.storeName }}" title="门店" value="{{ userInfo.storeName }}" icon="shop-o" />
       <van-cell title="角色" value="{{ roleDisplay }}" icon="shield-o" />
     </van-cell-group>
   </view>

@@ -8,6 +8,13 @@ const { request, get, handleUnauthorized } = require('../../utils/request');
 
 Page({
   data: {
+    // 权限控制
+    hasWechatRole: true,
+    isCheckingPermission: true,
+
+    // 当前用户店面信息
+    storeName: '',
+
     // 留资状态
     leaveInfoCompleted: false,
     leaveInfoId: '',
@@ -36,10 +43,41 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ active: 0 });
     }
+    this.checkPermission();
+  },
+
+  // 检查是否有 wechat 角色权限访问首页
+  checkPermission() {
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    const roles = userInfo.roles || [];
+    const hasWechatRole = Array.isArray(roles) && roles.includes('wechat');
+    const storeName = userInfo.storeName || '';
+
+    this.setData({
+      hasWechatRole,
+      storeName,
+      isCheckingPermission: false
+    });
+
+    // 如果没有 wechat 角色，给出提示
+    if (!hasWechatRole) {
+      wx.showToast({
+        title: '您暂无访问权限',
+        icon: 'none',
+        duration: 2000
+      });
+    }
   },
 
   handleToggleLeaveMode() {
-    this.setData({ showLeaveForm: !this.data.showLeaveForm });
+    const showForm = !this.data.showLeaveForm;
+    const update = { showLeaveForm: showForm };
+    // 切换到手动新增模式时，清空之前通过搜索选择带入的数据，确保表单干净
+    if (showForm) {
+      update.leaveName = '';
+      update.leavePhoneNum = '';
+    }
+    this.setData(update);
   },
 
   handleLeaveNameChange(e) {

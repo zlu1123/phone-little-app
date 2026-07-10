@@ -89,7 +89,16 @@ Page({
                   type: 'wechat',
                   userInfo: data.userInfo || userInfo,
                   phone: data.phone,
-                  token: data.token
+                  token: data.token,
+                  nickName: data.nickName,
+                  avatar: data.avatar,
+                  userName: data.userName,
+                  userId: data.userId,
+                  phonenumber: data.phonenumber,
+                  roles: data.roles,
+                  storeName: data.storeName,
+                  storeId: data.storeId,
+                  canPlaceOrder: data.canPlaceOrder
                 });
               } else {
                 wx.showToast({
@@ -168,7 +177,16 @@ Page({
                   type: 'phone',
                   phone: data.phone,
                   token: data.token,
-                  userInfo: data.userInfo
+                  userInfo: data.userInfo,
+                  nickName: data.nickName,
+                  avatar: data.avatar,
+                  userName: data.userName,
+                  userId: data.userId,
+                  phonenumber: data.phonenumber,
+                  roles: data.roles,
+                  storeName: data.storeName,
+                  storeId: data.storeId,
+                  canPlaceOrder: data.canPlaceOrder
                 });
               } else {
                 wx.showToast({
@@ -267,7 +285,10 @@ Page({
             avatar: data.avatar,
             userName: data.userName,
             userId: data.userId,
-            roles: data.roles
+            roles: data.roles,
+            storeName: data.storeName,
+            storeId: data.storeId,
+            canPlaceOrder: data.canPlaceOrder
           });
         } else {
           wx.showToast({
@@ -461,7 +482,10 @@ Page({
       phone: params.phone || '',
       userName: params.userName || '',
       userId: params.userId || '',
-      roles: params.roles || []
+      roles: params.roles || [],
+      storeName: params.storeName || '',
+      storeId: params.storeId || '',
+      canPlaceOrder: params.canPlaceOrder || false
     };
 
     // 存储登录状态和用户信息

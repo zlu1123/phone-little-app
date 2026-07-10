@@ -50,6 +50,13 @@
   margin-bottom: 2px;
 }
 
+.user-store {
+  font-size: 13px;
+  opacity: 0.9;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
 .desc {
   font-size: 14px;
   opacity: 0.8;

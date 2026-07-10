@@ -24,6 +24,9 @@ Page({
   },
 
   async handleChoice(e) {
+    // 检查是否允许下单
+    if (!this.checkCanPlaceOrder()) return;
+
     const { choice } = e.currentTarget.dataset;
     const oldPhoneStatus = this.data.oldPhoneStatus;
     const usageMonths = choice === 'over24' ? MONTHS_THRESHOLD : 0;
@@ -88,6 +91,21 @@ Page({
 
   handleCloseOAModal() { this.setData({ showOAModal: false }); },
   handleNoop() { },
+
+  // 检查是否可以下单
+  checkCanPlaceOrder() {
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    // 仅当 canPlaceOrder 显式为 false 时拦截；undefined（旧缓存无此字段）放行
+    if (userInfo.canPlaceOrder === false) {
+      wx.showToast({
+        title: '您暂无下单权限',
+        icon: 'none',
+        duration: 2000
+      });
+      return false;
+    }
+    return true;
+  },
 
   handleBack() { wx.navigateBack(); }
 });

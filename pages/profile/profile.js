@@ -8,7 +8,9 @@ Page({
       phone: '',
       userName: '',
       userId: '',
-      roles: []
+      roles: [],
+      storeName: '',
+      storeId: ''
     }
   },
 

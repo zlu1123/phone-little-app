@@ -12,6 +12,7 @@
     </view>
     <view class="user-info">
       <text class="nickname">{{ isLoggedIn ? userInfo.nickName : (isGuest ? '游客用户' : '点击登录') }}</text>
+      <text wx:if="{{ isLoggedIn && userInfo.storeName }}" class="user-store">门店：{{ userInfo.storeName }}</text>
       <text wx:if="{{ isLoggedIn && userInfo.phone }}" class="user-phone">手机号：{{ userInfo.phone }}</text>
       <text class="desc">{{ isLoggedIn ? '欢迎回来' : (isGuest ? '登录后享受更多服务' : '登录后查看更多信息') }}</text>
     </view>
@@ -24,7 +25,7 @@
   <view class="menu-list">
     <van-cell-group inset>
       <van-cell title="查询记录" icon="todo-list" is-link url="/pages/history/history" />
-      <van-cell title="已签约待赔付订单" icon="gold-coin-o" is-link bind:click="handleOpenCompensationOrder" />
+      <van-cell wx:if="{{ canPlaceOrder }}" title="已签约待赔付订单" icon="gold-coin-o" is-link bind:click="handleOpenCompensationOrder" />
       <van-cell wx:if="{{ hasUserRole }}" title="待审核列表" icon="orders-o" is-link bind:click="handleOpenReviewList" />
       <van-cell title="联系客服" icon="service" is-link>
         <button open-type="contact" class="contact-btn"></button>
