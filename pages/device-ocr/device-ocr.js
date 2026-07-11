@@ -457,7 +457,10 @@ Page({
   handleJumpToOfficialAccount() {
     const { queryResult } = this.data;
     if (!queryResult || queryResult.isExpired) { wx.showToast({ title: '设备已过保，无法跳转', icon: 'none' }); return; }
-    this.setData({ showOAModal: true });
+    const orderId = queryResult.id;
+    if (!orderId) { wx.showToast({ title: '订单信息缺失，请重新查询', icon: 'none' }); return; }
+    // 跳转签约页，签约成功后自动弹出亚丁弹窗
+    wx.navigateTo({ url: `/pages/contract-sign/contract-sign?orderId=${orderId}&redirectToYaDing=true` });
   },
 
   handleCloseOAModal() { this.setData({ showOAModal: false }); },

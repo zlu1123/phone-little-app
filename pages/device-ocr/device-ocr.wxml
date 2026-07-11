@@ -173,7 +173,7 @@
           custom-class="mb-3"
           color="linear-gradient(to right, #07c160, #06ad56)"
         >
-          前往亚丁屏卫
+          去签约并跳转亚丁
         </van-button>
 
         <van-button

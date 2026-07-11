@@ -485,7 +485,7 @@ Page({
       roles: params.roles || [],
       storeName: params.storeName || '',
       storeId: params.storeId || '',
-      canPlaceOrder: params.canPlaceOrder || false
+      canPlaceOrder: params.canPlaceOrder !== false
     };
 
     // 存储登录状态和用户信息

@@ -51,11 +51,16 @@ Page({
     successTabList: [
       { pagePath: '/pages/imei-query/imei-query', text: '首页', icon: 'wap-home-o' },
       { pagePath: '/pages/my/my', text: '我的', icon: 'contact-o' }
-    ]
+    ],
+
+    // 亚丁 OA 弹窗
+    showOAModal: false,
+    redirectToYaDing: false
   },
 
   onLoad(options) {
     const orderId = options.orderId || '';
+    const redirectToYaDing = options.redirectToYaDing === 'true';
 
     // 从 URL 参数读取设备信息（无旧手机场景预填，跳过重复填写）
     const skipDeviceInfo = options.skipDeviceInfo === 'true';
@@ -69,7 +74,8 @@ Page({
       orderId,
       apiBase: getApiBase(),
       stage: 'contract',
-      deviceForm: prefillDevice
+      deviceForm: prefillDevice,
+      redirectToYaDing
     });
 
     // 标记是否需要跳过设备信息填写阶段
@@ -573,9 +579,7 @@ Page({
 
       if (data && data.code === 200) {
         wx.hideLoading();
-        this.setData({ uploadingSignature: false });
-        // 签署成功 → 展示成功结果页
-        this.setData({ stage: 'success' });
+        this.setData({ uploadingSignature: false, stage: 'success' });
       } else {
         const errMsg = (data && (data.msg || data.message)) || `签订失败（code=${data && data.code}）`;
         throw new Error(errMsg);
@@ -593,6 +597,13 @@ Page({
   },
 
   // ========== 签署成功结果页 ==========
+
+  // 关闭亚丁 OA 弹窗
+  handleCloseOAModal() { this.setData({ showOAModal: false }); },
+  handleNoop() { },
+
+  // 打开亚丁 OA 弹窗
+  handleOpenYaDing() { this.setData({ showOAModal: true }); },
 
   // 返回首页（查询tab，默认无值状态）
   handleGoHome() {

@@ -411,7 +411,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #fff;
+  background: var(--van-background-color-light, #fff);
 }
 
 .success-body {
@@ -420,7 +420,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 64rpx;
+  padding: 0 var(--van-padding-lg, 48rpx);
 }
 
 .success-icon-wrapper {
@@ -431,27 +431,99 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 40rpx;
+  margin-bottom: var(--van-padding-lg, 40rpx);
 }
 
 .success-title {
-  font-size: 40rpx;
-  font-weight: 600;
+  font-size: var(--van-font-size-xl, 40rpx);
+  font-weight: var(--van-font-weight-bold, 600);
   color: var(--van-text-color, #323233);
-  margin-bottom: 16rpx;
+  margin-bottom: var(--van-padding-xs, 16rpx);
 }
 
 .success-subtitle {
-  font-size: 28rpx;
+  font-size: var(--van-font-size-md, 28rpx);
   color: var(--van-gray-6, #969799);
   margin-bottom: 72rpx;
   text-align: center;
-  line-height: 1.6;
+  line-height: var(--van-line-height-md, 1.6);
 }
 
 .success-actions {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: var(--van-padding-sm, 24rpx);
+}
+
+/* 「前往亚丁屏卫」绿色渐变按钮增强悬停/点击反馈 */
+.btn-go-yading {
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.2s;
+}
+.btn-go-yading:active {
+  opacity: 0.85;
+}
+
+/* ========== 亚丁 OA 弹窗 ========== */
+.oa-modal {
+  width: 600rpx;
+  border-radius: var(--van-radius-lg, 24rpx) !important;
+  overflow: hidden;
+}
+.oa-modal__inner {
+  padding: var(--van-padding-lg, 48rpx) var(--van-padding-md, 32rpx)
+    var(--van-padding-md, 32rpx);
+  background: var(--van-background-color-light, #fff);
+}
+.oa-modal__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--van-padding-md, 32rpx);
+}
+.oa-modal__icon {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: var(--van-green-1, rgba(7, 193, 96, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--van-padding-sm, 20rpx);
+}
+.oa-modal__title {
+  font-size: var(--van-font-size-lg, 36rpx);
+  font-weight: var(--van-font-weight-bold, 700);
+  color: var(--van-text-color, #1a1a1a);
+  line-height: var(--van-line-height-md, 1.3);
+}
+.oa-modal__subtitle {
+  font-size: var(--van-font-size-sm, 26rpx);
+  color: var(--van-gray-6, #969799);
+  margin-top: var(--van-padding-xs, 12rpx);
+}
+.oa-qrcode-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--van-padding-md, 32rpx);
+  background: var(--van-gray-1, #f7f8fa);
+  border-radius: var(--van-radius-md, 20rpx);
+}
+.oa-qrcode-image {
+  width: 380rpx;
+  height: 380rpx;
+  background: #fff;
+  border-radius: var(--van-radius-sm, 12rpx);
+}
+.oa-modal__tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--van-padding-xs, 8rpx);
+  margin-top: var(--van-padding-md, 32rpx);
+  font-size: var(--van-font-size-xs, 24rpx);
+  color: var(--van-gray-6, #969799);
 }

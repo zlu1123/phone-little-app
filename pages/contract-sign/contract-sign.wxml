@@ -208,6 +208,17 @@
 
       <view class="success-actions">
         <van-button
+          wx:if="{{ redirectToYaDing }}"
+          class="btn-go-yading"
+          round
+          block
+          bind:click="handleOpenYaDing"
+          icon="wechat"
+          color="linear-gradient(to right, #07c160, #06ad56)"
+        >
+          前往亚丁屏卫
+        </van-button>
+        <van-button
           class="btn-go-home"
           round
           block
@@ -241,4 +252,42 @@
       </van-tabbar-item>
     </van-tabbar>
   </view>
+
+  <!-- 公众号引导弹窗（仅在用户点击按钮后展示） -->
+  <van-popup
+    wx:if="{{ stage === 'success' && showOAModal }}"
+    show="{{ showOAModal }}"
+    round
+    closeable
+    close-icon="cross"
+    custom-class="oa-modal"
+    lock-scroll="{{ true }}"
+    overlay="{{ true }}"
+    bind:close="handleCloseOAModal"
+    bind:click-overlay="handleCloseOAModal"
+    catch:touchmove="handleNoop"
+  >
+    <view class="oa-modal__inner" catch:tap="handleNoop" catch:touchmove="handleNoop">
+      <view class="oa-modal__header">
+        <view class="oa-modal__icon">
+          <van-icon name="wechat" size="48" color="#07c160" />
+        </view>
+        <view class="oa-modal__title">扫码关注「亚丁屏卫」</view>
+        <view class="oa-modal__subtitle">长按二维码识别，立即享受保修服务</view>
+      </view>
+      <view class="oa-qrcode-wrapper">
+        <image
+          class="oa-qrcode-image"
+          src="/images/yading-qrcode.png"
+          mode="aspectFit"
+          show-menu-by-longpress="{{ true }}"
+          aria-label="亚丁屏卫公众号二维码"
+        />
+      </view>
+      <view class="oa-modal__tip">
+        <van-icon name="info-o" size="14" color="#969799" />
+        <text>长按图片可保存二维码到相册</text>
+      </view>
+    </view>
+  </van-popup>
 </view>

@@ -1,5 +1,6 @@
 // pages/usage-duration/usage-duration.js
 const { API_ENDPOINTS, buildApiUrl, BUSINESS_CONSTANTS } = require('../../config');
+const { checkCanPlaceOrder } = require('../../utils/auth');
 const { request } = require('../../utils/request');
 const MONTHS_THRESHOLD = BUSINESS_CONSTANTS.OLD_PHONE_USAGE_MONTHS_THRESHOLD;
 
@@ -25,7 +26,7 @@ Page({
 
   async handleChoice(e) {
     // 检查是否允许下单
-    if (!this.checkCanPlaceOrder()) return;
+    if (!checkCanPlaceOrder()) return;
 
     const { choice } = e.currentTarget.dataset;
     const oldPhoneStatus = this.data.oldPhoneStatus;
@@ -47,7 +48,12 @@ Page({
         });
         const data = res.data;
         if (data.code === 200) {
-          this.setData({ showOAModal: true });
+          const resultData = (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) ? data.data : data;
+          const orderId = resultData.id || data.data;
+          if (!orderId) { wx.showToast({ title: '订单信息缺失，请重试', icon: 'none' }); return; }
+          wx.navigateTo({
+            url: `/pages/contract-sign/contract-sign?orderId=${encodeURIComponent(String(orderId))}&redirectToYaDing=true`
+          });
         } else {
           wx.showToast({ title: data.msg || '操作失败', icon: 'none' });
         }
@@ -91,21 +97,6 @@ Page({
 
   handleCloseOAModal() { this.setData({ showOAModal: false }); },
   handleNoop() { },
-
-  // 检查是否可以下单
-  checkCanPlaceOrder() {
-    const userInfo = wx.getStorageSync('userInfo') || {};
-    // 仅当 canPlaceOrder 显式为 false 时拦截；undefined（旧缓存无此字段）放行
-    if (userInfo.canPlaceOrder === false) {
-      wx.showToast({
-        title: '您暂无下单权限',
-        icon: 'none',
-        duration: 2000
-      });
-      return false;
-    }
-    return true;
-  },
 
   handleBack() { wx.navigateBack(); }
 });

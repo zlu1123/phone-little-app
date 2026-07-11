@@ -1,5 +1,6 @@
 // pages/device-source/device-source.js
 const { API_ENDPOINTS, buildApiUrl } = require('../../config');
+const { checkCanPlaceOrder } = require('../../utils/auth');
 const { request, handleUnauthorized } = require('../../utils/request');
 
 Page({
@@ -54,7 +55,7 @@ Page({
   // 选择设备来源
   handleSelectDeviceSource(e) {
     // 检查是否允许下单
-    if (!this.checkCanPlaceOrder()) return;
+    if (!checkCanPlaceOrder()) return;
 
     const { source } = e.currentTarget.dataset;
     const { leaveInfoId, leaveName, leavePhoneNum } = this.data;
@@ -75,21 +76,6 @@ Page({
       // 无旧手机：调 API 生成订单 → 直接跳签约页
       this.submitNoOldPhone(leaveInfoId, name, phone);
     }
-  },
-
-  // 检查是否可以下单
-  checkCanPlaceOrder() {
-    const userInfo = wx.getStorageSync('userInfo') || {};
-    // 仅当 canPlaceOrder 显式为 false 时拦截；undefined（旧缓存无此字段）放行
-    if (userInfo.canPlaceOrder === false) {
-      wx.showToast({
-        title: '您暂无下单权限',
-        icon: 'none',
-        duration: 2000
-      });
-      return false;
-    }
-    return true;
   },
 
   async submitNoOldPhone(leaveInfoId, name, phone) {
