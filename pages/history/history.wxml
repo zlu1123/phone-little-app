@@ -48,11 +48,11 @@
         <view class="order-content">
           <view class="info-row">
             <text class="label">设备型号：</text>
-            <text class="value">{{ item.isNewPhoneRegister ? (item.signatureModel || '未知') : (item.model || '未知') }}</text>
+            <text class="value">{{ item.signatureModel || '未知' }}</text>
           </view>
           <view class="info-row">
             <text class="label">序列号：</text>
-            <text class="value">{{ item.isNewPhoneRegister ? (item.signatureImei || '未知') : (item.sn || '未知') }}</text>
+            <text class="value">{{ item.signatureImei || '未知' }}</text>
           </view>
           <view class="info-row" wx:if="{{ item.imei1 }}">
             <text class="label">IMEI1：</text>
