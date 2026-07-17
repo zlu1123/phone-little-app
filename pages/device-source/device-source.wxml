@@ -10,16 +10,10 @@
     bind:click-left="handleBack"
   ></van-nav-bar>
 
-  <!-- 已登记用户信息提示条 -->
-  <view class="ds-user-bar">
-    <view class="ds-user-bar__left">
-      <van-icon name="user-o" size="16" color="#1989fa" custom-style="margin-right: 8rpx;" />
-      <text class="ds-user-bar__text">{{ leaveName }} {{ leavePhoneNum }}</text>
-    </view>
-    <view class="ds-user-bar__right" bind:tap="handleBackToLeaveInfo" hover-class="ds-user-bar__right--hover">
-      <text>切换</text>
-    </view>
-  </view>
+  <!-- 留资人信息条 -->
+  <van-cell-group inset custom-class="leave-info-group">
+    <van-cell title="{{ leaveName }} {{ leavePhoneNum }}" icon="user-o" value="切换" is-link bind:click="handleBackToLeaveInfo" />
+  </van-cell-group>
 
   <!-- 设备来源选择 -->
   <view class="ds-container">

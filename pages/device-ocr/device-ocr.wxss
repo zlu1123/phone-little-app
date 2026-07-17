@@ -13,6 +13,11 @@ page {
   padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
+/* 留资人信息条 */
+.leave-info-group {
+  margin: 0 !important;
+}
+
 .steps-wrapper {
   background-color: #fff;
   padding: 12px 0;

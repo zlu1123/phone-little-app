@@ -9,6 +9,11 @@
     z-index="{{100}}"
   ></van-nav-bar>
 
+  <!-- 留资人信息条 -->
+  <van-cell-group inset custom-class="leave-info-group">
+    <van-cell title="{{ leaveName }} {{ leavePhoneNum }}" icon="user-o" />
+  </van-cell-group>
+
   <!-- 步骤条 -->
   <view class="steps-wrapper">
     <van-steps steps="{{ steps }}" active="{{ activeStep }}" active-icon="success" active-color="#1989fa" />

@@ -13,35 +13,9 @@ page {
   padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
-/* 用户信息提示条 */
-.ds-user-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16rpx 32rpx;
-  background: #fff;
-  margin-bottom: 20rpx;
-  box-shadow: 0 1px 6px rgba(25, 137, 250, 0.06);
-}
-
-.ds-user-bar__left {
-  display: flex;
-  align-items: center;
-}
-
-.ds-user-bar__text {
-  font-size: 28rpx;
-  color: #323233;
-}
-
-.ds-user-bar__right {
-  font-size: 26rpx;
-  color: #1989fa;
-  padding: 8rpx 16rpx;
-}
-
-.ds-user-bar__right--hover {
-  opacity: 0.7;
+/* 留资人信息条 */
+.leave-info-group {
+  margin: 0 !important;
 }
 
 /* 设备来源选择容器 */
