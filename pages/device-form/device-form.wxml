@@ -52,21 +52,23 @@
         />
         <van-field
           value="{{ imei }}"
-          label="IMEI"
           title-width="5em"
-          placeholder="请输入IMEI"
+          placeholder="{{ isImeiRequired ? '该品牌必须输入IMEI' : '请输入IMEI' }}"
           type="number"
           maxlength="15"
           clearable="{{true}}"
           bind:change="onImeiInput"
-        />
+        >
+          <text slot="label">IMEI<text wx:if="{{ isImeiRequired }}" style="color:#ee0a24;"> *</text></text>
+        </van-field>
         <van-field
           value="{{ sn }}"
           label="SN"
           title-width="5em"
-          placeholder="请输入SN"
+          placeholder="{{ isImeiRequired ? '该品牌仅支持IMEI查询' : '请输入SN' }}"
           maxlength="20"
           clearable="{{true}}"
+          disabled="{{ isImeiRequired }}"
           bind:change="onSnInput"
         />
       </van-cell-group>

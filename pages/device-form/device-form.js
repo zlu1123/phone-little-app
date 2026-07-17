@@ -5,6 +5,8 @@ const {
   BUSINESS_CONSTANTS
 } = require('../../config');
 const MONTHS_THRESHOLD = BUSINESS_CONSTANTS.OLD_PHONE_USAGE_MONTHS_THRESHOLD;
+const IMEI_REQUIRED_BRANDS = BUSINESS_CONSTANTS.IMEI_REQUIRED_BRANDS;
+const DEFAULT_PHONE_BRANDS = BUSINESS_CONSTANTS.DEFAULT_PHONE_BRANDS;
 const { checkCanPlaceOrder } = require('../../utils/auth');
 const { request } = require('../../utils/request');
 
@@ -33,15 +35,25 @@ Page({
     isSubmitting: false,
 
     // 亚丁 OA 弹窗
-    showOAModal: false
+    showOAModal: false,
+
+    // IMEI 必填标识（OPPO/VIVO）
+    isImeiRequired: false
   },
 
   onLoad(options) {
     const { leaveInfoId, leaveName, leavePhoneNum, isDamaged, oldPhoneStatus, oldPhoneUsageMonths } = options;
+    const name = decodeURIComponent(leaveName || '');
+    const phone = leavePhoneNum || '';
+    if (!name && !phone) {
+      wx.showToast({ title: '请先登记用户信息', icon: 'none', duration: 1500 });
+      wx.switchTab({ url: '/pages/imei-query/imei-query' });
+      return;
+    }
     this.setData({
       leaveInfoId: leaveInfoId || '',
-      leaveName: decodeURIComponent(leaveName || ''),
-      leavePhoneNum: leavePhoneNum || '',
+      leaveName: name,
+      leavePhoneNum: phone,
       isDamaged: isDamaged === '1',
       oldPhoneStatus: oldPhoneStatus != null ? Number(oldPhoneStatus) : null,
       oldPhoneUsageMonths: oldPhoneUsageMonths != null ? Number(oldPhoneUsageMonths) : null
@@ -65,10 +77,10 @@ Page({
         const options = data.data.map(item => ({ name: item.name, value: item.code }));
         this.setData({ modelOptions: options });
       } else {
-        this.setData({ modelOptions: [{ name: '苹果', value: '1' }, { name: '小米/红米', value: '2' }, { name: '华为/荣耀', value: '3' }] });
+        this.setData({ modelOptions: DEFAULT_PHONE_BRANDS });
       }
     } catch (e) {
-      this.setData({ modelOptions: [{ name: '苹果', value: '1' }, { name: '小米/红米', value: '2' }, { name: '华为/荣耀', value: '3' }] });
+      this.setData({ modelOptions: DEFAULT_PHONE_BRANDS });
     } finally {
       this.setData({ isFetchingModel: false });
     }
@@ -84,7 +96,8 @@ Page({
     this.setData({
       selectedModelName: item.name,
       typeCode: item.value,
-      showModelPicker: false
+      showModelPicker: false,
+      isImeiRequired: IMEI_REQUIRED_BRANDS.includes(item.value)
     });
   },
 
@@ -95,16 +108,28 @@ Page({
   async handleSubmit() {
     const { typeCode, imei, sn, oldPhoneStatus, oldPhoneUsageMonths } = this.data;
     if (!typeCode) { wx.showToast({ title: '请选择手机类型', icon: 'none' }); return; }
-    const code = sn || imei;
+    const code = IMEI_REQUIRED_BRANDS.includes(typeCode) ? imei : (sn || imei);
     if (!code) { wx.showToast({ title: '请输入IMEI或SN', icon: 'none' }); return; }
+    // OPPO/VIVO 必须使用 IMEI
+    if (IMEI_REQUIRED_BRANDS.includes(typeCode) && !imei) {
+      wx.showToast({ title: '该品牌必须输入IMEI', icon: 'none' });
+      return;
+    }
 
     // 检查是否允许下单
     if (!checkCanPlaceOrder()) return;
 
+    const infoId = this.data.leaveInfoId;
+    if (!infoId) {
+      wx.showToast({ title: '缺少留资信息，请重新登记', icon: 'none' });
+      wx.switchTab({ url: '/pages/imei-query/imei-query' });
+      return;
+    }
+
     this.setData({ isSubmitting: true });
     try {
-      const infoId = this.data.leaveInfoId;
       const queryParts = [`typeCode=${encodeURIComponent(typeCode)}`, `code=${encodeURIComponent(code)}`, `infoId=${encodeURIComponent(infoId)}`, 'skipApiCall=true'];
+      if (imei) queryParts.push(`imei=${encodeURIComponent(imei)}`);
       if (oldPhoneStatus != null) queryParts.push(`oldPhoneStatus=${oldPhoneStatus}`);
       if (oldPhoneUsageMonths != null) queryParts.push(`oldPhoneUsageMonths=${oldPhoneUsageMonths}`);
 

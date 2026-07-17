@@ -3,10 +3,13 @@ const {
   API_ENDPOINTS,
   buildApiUrl,
   getApiBase,
-  isWechatOcrEnabled
+  isWechatOcrEnabled,
+  BUSINESS_CONSTANTS
 } = require('../../config');
 const { parseDateTime } = require('../../utils/date');
 const { request, uploadFile, handleUnauthorized } = require('../../utils/request');
+const IMEI_REQUIRED_BRANDS = BUSINESS_CONSTANTS.IMEI_REQUIRED_BRANDS;
+const DEFAULT_PHONE_BRANDS = BUSINESS_CONSTANTS.DEFAULT_PHONE_BRANDS;
 
 Page({
   data: {
@@ -23,7 +26,7 @@ Page({
     queryResult: null,
 
     formData: {
-      typeCode: '1',
+      typeCode: DEFAULT_PHONE_BRANDS[0].value,
       sn: '',
       imei: '',
       imei2: ''
@@ -36,15 +39,23 @@ Page({
 
     showOAModal: false,
     signedContractInfo: null,
-    apiBase: ''
+    apiBase: '',
+    isImeiRequired: false
   },
 
   onLoad(options) {
     const { leaveInfoId, leaveName, leavePhoneNum } = options;
+    const name = decodeURIComponent(leaveName || '');
+    const phone = leavePhoneNum || '';
+    if (!name && !phone) {
+      wx.showToast({ title: '请先登记用户信息', icon: 'none', duration: 1500 });
+      wx.switchTab({ url: '/pages/imei-query/imei-query' });
+      return;
+    }
     this.setData({
       leaveInfoId: leaveInfoId || '',
-      leaveName: decodeURIComponent(leaveName || ''),
-      leavePhoneNum: leavePhoneNum || ''
+      leaveName: name,
+      leavePhoneNum: phone
     });
   },
 
@@ -83,7 +94,8 @@ Page({
         this.setData({
           modelOptions,
           selectedModelName: modelOptions[0].name,
-          'formData.typeCode': modelOptions[0].value
+          'formData.typeCode': modelOptions[0].value,
+          isImeiRequired: IMEI_REQUIRED_BRANDS.includes(modelOptions[0].value)
         });
       } else {
         this.setFallbackModelOptions();
@@ -96,15 +108,12 @@ Page({
   },
 
   setFallbackModelOptions() {
-    const fallbackOptions = [
-      { name: '苹果', value: '1' },
-      { name: '小米/红米', value: '2' },
-      { name: '华为/荣耀', value: '3' }
-    ];
+    const fallbackOptions = DEFAULT_PHONE_BRANDS;
     this.setData({
       modelOptions: fallbackOptions,
       selectedModelName: fallbackOptions[0].name,
-      'formData.typeCode': fallbackOptions[0].value
+      'formData.typeCode': fallbackOptions[0].value,
+      isImeiRequired: IMEI_REQUIRED_BRANDS.includes(fallbackOptions[0].value)
     });
   },
 
@@ -114,7 +123,7 @@ Page({
       activeStep: 0,
       queryResult: null,
       formData: {
-        typeCode: this.data.formData.typeCode || '1',
+        typeCode: this.data.formData.typeCode || DEFAULT_PHONE_BRANDS[0].value,
         sn: '',
         imei: '',
         imei2: ''
@@ -143,7 +152,7 @@ Page({
       activeStep: 0,
       queryResult: null,
       formData: {
-        typeCode: this.data.formData.typeCode || '1',
+        typeCode: this.data.formData.typeCode || DEFAULT_PHONE_BRANDS[0].value,
         sn: '',
         imei: '',
         imei2: ''
@@ -278,7 +287,7 @@ Page({
           url: buildApiUrl(API_ENDPOINTS.ocrImageCheck),
           filePath: localFilePath,
           name: 'file',
-          formData: { typeCode: this.data.formData.typeCode || '1' },
+          formData: { typeCode: this.data.formData.typeCode || DEFAULT_PHONE_BRANDS[0].value },
           success: res => {
             if (res.statusCode === 200) {
               try {
@@ -373,23 +382,40 @@ Page({
     const { value: selected, index } = e.detail || {};
     const item = (selected && typeof selected === 'object') ? selected : (this.data.modelOptions[index] || {});
     if (!item || !item.value) { this.setData({ showModelPicker: false }); return; }
+    const isImeiRequired = IMEI_REQUIRED_BRANDS.includes(item.value);
     this.setData({
       selectedModelName: item.name,
       'formData.typeCode': item.value,
-      showModelPicker: false
+      showModelPicker: false,
+      isImeiRequired
     });
   },
 
   async handleQuery() {
-    const { sn, imei, typeCode } = this.data.formData;
+    const { sn, imei, imei2, typeCode } = this.data.formData;
     if (!sn && !imei) { wx.showToast({ title: '请输入序列号或IMEI', icon: 'none' }); return; }
+    // OPPO/VIVO 必须使用 IMEI
+    if (IMEI_REQUIRED_BRANDS.includes(typeCode) && !imei) {
+      wx.showToast({ title: '该品牌必须输入IMEI', icon: 'none' });
+      return;
+    }
+    // infoId 必填
+    const infoId = this.data.leaveInfoId;
+    if (!infoId) {
+      wx.showToast({ title: '缺少留资信息，请重新登记', icon: 'none' });
+      wx.switchTab({ url: '/pages/imei-query/imei-query' });
+      return;
+    }
     const imageUrl = this.data.pictureList.length > 0 ? (this.data.pictureList[0].path || this.data.pictureList[0].url) : '';
     this.setData({ isQuerying: true });
     try {
-      const formData = { typeCode, code: sn || imei };
-      const infoId = this.data.leaveInfoId;
-      if (infoId) formData.infoId = infoId;
+      const formData = {
+        typeCode,
+        code: IMEI_REQUIRED_BRANDS.includes(typeCode) ? imei : (sn || imei),
+        infoId
+      };
       if (imei) formData.imei = imei;
+      if (imei2) formData.imei2 = imei2;
       let data;
       if (imageUrl) {
         const localFilePath = this.isExternalUrl(imageUrl) ? await this.downloadImageToTempFile(imageUrl) : imageUrl;
@@ -399,9 +425,9 @@ Page({
         });
         data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
       } else {
-        const queryParts = [`typeCode=${encodeURIComponent(formData.typeCode || '')}`, `code=${encodeURIComponent(formData.code || '')}`];
-        if (formData.infoId) queryParts.push(`infoId=${encodeURIComponent(formData.infoId)}`);
+        const queryParts = [`typeCode=${encodeURIComponent(formData.typeCode || '')}`, `code=${encodeURIComponent(formData.code || '')}`, `infoId=${encodeURIComponent(formData.infoId)}`];
         if (formData.imei) queryParts.push(`imei=${encodeURIComponent(formData.imei)}`);
+        if (formData.imei2) queryParts.push(`imei2=${encodeURIComponent(formData.imei2)}`);
         const res = await request({
           url: buildApiUrl(API_ENDPOINTS.queryActiveInfo) + '?' + queryParts.join('&'),
           method: 'POST'

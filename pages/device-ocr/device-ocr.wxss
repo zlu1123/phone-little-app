@@ -159,7 +159,6 @@ page {
   text-overflow: clip !important;
   overflow: hidden !important;
 }
-
 .action-btn {
   margin-top: 40rpx;
 }

@@ -87,25 +87,27 @@
           value="{{ formData.sn }}"
           label="序列号"
           title-width="4em"
-          placeholder="请输入或识别序列号"
+          placeholder="{{ isImeiRequired ? '该品牌仅支持IMEI查询' : '请输入或识别序列号' }}"
           maxlength="20"
           clearable="{{true}}"
           custom-class="code-field"
           input-class="code-field-input"
+          disabled="{{ isImeiRequired }}"
           bind:change="onSnChange"
         />
         <van-field
           value="{{ formData.imei }}"
-          label="IMEI1"
           title-width="4em"
-          placeholder="请输入或识别IMEI1"
+          placeholder="{{ isImeiRequired ? '该品牌必须输入IMEI' : '请输入或识别IMEI1' }}"
           type="number"
           maxlength="15"
           clearable="{{true}}"
           custom-class="code-field"
           input-class="code-field-input"
           bind:change="onImeiChange"
-        />
+        >
+          <text slot="label">IMEI1<text wx:if="{{ isImeiRequired }}" style="color:#ee0a24;"> *</text></text>
+        </van-field>
         <van-field
           value="{{ formData.imei2 }}"
           label="IMEI2"

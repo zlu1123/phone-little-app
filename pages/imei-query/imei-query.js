@@ -49,9 +49,11 @@ Page({
   // 检查是否有 wechat 角色权限访问首页
   checkPermission() {
     const userInfo = wx.getStorageSync('userInfo') || {};
+    console.log('[imei-query] userInfo from storage:', JSON.stringify(userInfo));
     const roles = userInfo.roles || [];
     const hasWechatRole = Array.isArray(roles) && roles.includes('wechat');
     const storeName = userInfo.storeName || '';
+    console.log('[imei-query] storeName:', storeName, 'hasWechatRole:', hasWechatRole);
 
     this.setData({
       hasWechatRole,

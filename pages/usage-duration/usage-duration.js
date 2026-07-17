@@ -16,10 +16,17 @@ Page({
 
   onLoad(options) {
     const { leaveInfoId, leaveName, leavePhoneNum, oldPhoneStatus } = options;
+    const name = decodeURIComponent(leaveName || '');
+    const phone = leavePhoneNum || '';
+    if (!name && !phone) {
+      wx.showToast({ title: '请先登记用户信息', icon: 'none', duration: 1500 });
+      wx.switchTab({ url: '/pages/imei-query/imei-query' });
+      return;
+    }
     this.setData({
       leaveInfoId: leaveInfoId || '',
-      leaveName: decodeURIComponent(leaveName || ''),
-      leavePhoneNum: leavePhoneNum || '',
+      leaveName: name,
+      leavePhoneNum: phone,
       oldPhoneStatus: oldPhoneStatus || ''
     });
   },
