@@ -1,5 +1,5 @@
 const { API_ENDPOINTS, buildApiUrl } = require('../../config');
-const { request, resetLoginRedirectFlag } = require('../../utils/request');
+const { request, isRedirectingToLogin } = require('../../utils/request');
 
 Page({
   data: {
@@ -24,9 +24,6 @@ Page({
   },
 
   onLoad() {
-    // 重置"正在跳转登录页"标志
-    resetLoginRedirectFlag();
-
     // 获取系统信息，设置状态栏高度
     const systemInfo = wx.getSystemInfoSync();
     let menuButtonInfo = null;
@@ -106,7 +103,8 @@ Page({
     });
 
     // 如果未登录且不是游客模式，跳转到登录页
-    if (!isValidLogin && !isGuest) {
+    // 检查 isRedirectingToLogin 锁，防止与 401 拦截器重复弹窗
+    if (!isValidLogin && !isGuest && !isRedirectingToLogin()) {
       wx.showToast({
         title: '请先登录',
         icon: 'none'

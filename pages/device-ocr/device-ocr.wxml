@@ -87,14 +87,17 @@
           value="{{ formData.sn }}"
           label="序列号"
           title-width="4em"
-          placeholder="{{ isImeiRequired ? '该品牌仅支持IMEI查询' : '请输入或识别序列号' }}"
+          placeholder="{{ isImeiRequired ? '该品牌仅支持IMEI查询，SN不参与查询' : '请输入或识别序列号' }}"
           maxlength="20"
           clearable="{{true}}"
           custom-class="code-field"
           input-class="code-field-input"
-          disabled="{{ isImeiRequired }}"
           bind:change="onSnChange"
         />
+        <view wx:if="{{ isImeiRequired }}" class="sn-notice">
+          <van-icon name="info-o" size="12" color="#ff976a" />
+          <text>当前手机型号仅支持 IMEI 查询，SN 可用于记录但不会作为查询条件</text>
+        </view>
         <van-field
           value="{{ formData.imei }}"
           title-width="4em"

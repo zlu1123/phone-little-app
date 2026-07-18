@@ -1,5 +1,5 @@
 const { API_ENDPOINTS, buildApiUrl, getApiBase } = require('../../config');
-const { parseDateTime } = require('../../utils/date');
+const { parseDateTime, formatDateTime } = require('../../utils/date');
 const { request } = require('../../utils/request');
 
 Page({
@@ -145,6 +145,10 @@ Page({
 
     return {
       ...item,
+      createTime: formatDateTime(item.createTime, ''),
+      activateDate: formatDateTime(item.activateDate, '未知'),
+      coverage: formatDateTime(item.coverage, ''),
+      signatureDate: formatDateTime(item.signatureDate, ''),
       isExpired,
       warrantyStatus,
       activatedAtQuery,

@@ -115,8 +115,12 @@ const request = (options) => {
   const originalSuccess = options.success;
   const originalFail = options.fail;
 
-  // 合并公共请求头（自定义 header 优先级更高）
-  const mergedHeaders = { ...getCommonHeaders(), ...(options.header || {}) };
+  // 合并请求头：charset=UTF-8 避免中文乱码，自定义 header 优先级更高
+  const mergedHeaders = {
+    'Content-Type': 'application/json;charset=UTF-8',
+    ...getCommonHeaders(),
+    ...(options.header || {})
+  };
 
   return new Promise((resolve, reject) => {
     wx.request({
@@ -177,7 +181,7 @@ const post = (endpoint, data, extraOptions) => {
     url: buildApiUrl(endpoint),
     method: 'POST',
     data,
-    header: { 'content-type': 'application/json', ...extraHeader },
+    header: { 'content-type': 'application/json;charset=UTF-8', ...extraHeader },
     ...restExtra
   });
 };
@@ -232,5 +236,6 @@ module.exports = {
   getCommonHeaders,
   checkUnauthorized,
   handleUnauthorized,
-  resetLoginRedirectFlag
+  resetLoginRedirectFlag,
+  isRedirectingToLogin: () => isRedirectingToLogin
 };

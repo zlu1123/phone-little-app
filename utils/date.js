@@ -30,6 +30,11 @@ const normalizeDateString = (input) => {
   // "yyyy/MM/dd ..." -> "yyyy-MM-dd ..."
   str = str.replace(/\//g, '-');
 
+  // 中文日期格式： "2025年10月17日" -> "2025-10-17"
+  str = str.replace(/^(\d{4})年(\d{1,2})月(\d{1,2})日/, (_, y, m, d) =>
+    `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+  );
+
   // 补零月日：iOS 的 new Date() 严格要求 ISO 格式，月日必须两位
   // "2024-7-5" -> "2024-07-05"、 "2024-12-1" -> "2024-12-01"
   str = str.replace(/^(\d{4})-(\d{1,2})-(\d{1,2})/, (_, y, m, d) =>
@@ -39,6 +44,10 @@ const normalizeDateString = (input) => {
   // "yyyy-MM-dd HH:mm:ss" -> "yyyy-MM-ddTHH:mm:ss"
   // 仅替换日期与时间之间的第一个空格
   str = str.replace(/^(\d{4}-\d{1,2}-\d{1,2})\s+(\d{1,2}:\d{1,2}(?::\d{1,2}(?:\.\d+)?)?)/, '$1T$2');
+
+  // iOS Safari 兼容：仅去除毫秒，保留时区冒号（iOS 支持 +08:00，不支持 +0800）
+  // "2026-07-12T00:33:25.000+08:00" -> "2026-07-12T00:33:25+08:00"
+  str = str.replace(/\.\d{3}/, '');
 
   return str;
 };

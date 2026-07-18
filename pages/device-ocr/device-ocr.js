@@ -6,7 +6,7 @@ const {
   isWechatOcrEnabled,
   BUSINESS_CONSTANTS
 } = require('../../config');
-const { parseDateTime } = require('../../utils/date');
+const { parseDateTime, formatDateTime } = require('../../utils/date');
 const { request, uploadFile, handleUnauthorized } = require('../../utils/request');
 const IMEI_REQUIRED_BRANDS = BUSINESS_CONSTANTS.IMEI_REQUIRED_BRANDS;
 const DEFAULT_PHONE_BRANDS = BUSINESS_CONSTANTS.DEFAULT_PHONE_BRANDS;
@@ -453,8 +453,8 @@ Page({
         const queryResultData = {
           id: resultData.id || '',
           productName: resultData.model || '未知设备',
-          activationDate: resultData.activateDate || '未知',
-          coverageDate: coverageDate || '未知',
+          activationDate: formatDateTime(resultData.activateDate, '未知'),
+          coverageDate: formatDateTime(coverageDate, '未知'),
           isExpired, warrantyStatus,
           contractPath: resultData.contractPath || '',
           signaturePath: resultData.signaturePath || '',
@@ -463,6 +463,10 @@ Page({
         };
         this.setData({ queryResult: queryResultData, activeStep: 2, isQuerying: false });
         wx.showToast({ title: '查询成功', icon: 'success' });
+        // 自动滚动到结果区域
+        wx.nextTick(() => {
+          wx.pageScrollTo({ selector: '#step-3-card', duration: 300 });
+        });
       } else { throw new Error(data.msg || '查询失败'); }
     } catch (error) {
       this.setData({ isQuerying: false });

@@ -83,7 +83,22 @@ const buildApiUrl = path => joinUrl(getApiBase(), path);
  */
 const BUSINESS_CONSTANTS = {
   // 旧手机使用时长阈值（月），≥此值走亚丁屏卫，<此值走签协议
-  OLD_PHONE_USAGE_MONTHS_THRESHOLD: 24
+  OLD_PHONE_USAGE_MONTHS_THRESHOLD: 24,
+
+  // 必须使用 IMEI 的品牌 typeCode 列表（不支持仅 SN 查询）
+  // OPPO='5', VIVO='6'
+  IMEI_REQUIRED_BRANDS: ['5', '6'],
+
+  // 手机品牌默认列表（API 获取失败时兜底，code 与后端 queryPhoneTypeList 返回值一致）
+  DEFAULT_PHONE_BRANDS: [
+    { name: '苹果', value: '1' },
+    { name: '小米/红米', value: '2' },
+    { name: '华为', value: '3' },
+    { name: '荣耀', value: '4' },
+    { name: 'OPPO/真我/一加', value: '5' },
+    { name: 'VIVO/iQOO', value: '6' },
+    { name: '三星', value: '7' }
+  ]
 };
 
 /**
