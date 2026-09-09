@@ -1,7 +1,7 @@
 .review-page {
   min-height: 100vh;
   background: #f7f8fa;
-  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  /* 底部内边距由 wxml 内联样式动态设置：calc(20px + bottomSafe) */
 }
 
 /* 列表头部 */
@@ -12,6 +12,11 @@
 .list-count {
   font-size: 24rpx;
   color: #969799;
+}
+
+/* 每条订单独立卡片：卡片之间留出间隔 */
+.order-card {
+  margin-bottom: 5px;
 }
 
 /* 列表项 label 区域 */
@@ -27,12 +32,12 @@
   line-height: 1.8;
 }
 
-/* 操作按钮区 */
+/* 操作按钮区（位于所属订单卡片底部） */
 .cell-actions {
   display: flex;
   justify-content: flex-end;
   gap: 16rpx;
-  padding: 0 32rpx 20rpx;
+  padding: 16rpx 32rpx 20rpx;
   background: #fff;
 }
 

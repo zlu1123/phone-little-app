@@ -1,4 +1,4 @@
-<view class="review-page">
+<view class="review-page" style="padding-bottom: calc(20px + {{ bottomSafe }}px);">
   <van-nav-bar
     title="待审核列表"
     fixed="{{true}}"
@@ -16,14 +16,18 @@
         <view class="list-count">共 {{ total }} 条待审核订单</view>
       </view>
 
-      <van-cell-group inset>
-        <block wx:for="{{ orderList }}" wx:key="id">
+      <view class="order-card" wx:for="{{ orderList }}" wx:key="id">
+        <van-cell-group inset>
           <van-cell
-            title="{{ item.name }}"
+            title="赔付客户名：{{ item.name }}"
             use-label-slot
             custom-style="padding-bottom: 0;"
           >
             <view slot="label" class="cell-label">
+              <view wx:if="{{ item.createByName }}" class="cell-label__row">
+                <van-icon name="manager-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
+                <text>审核发起人：{{ item.createByName }}</text>
+              </view>
               <view wx:if="{{ item.orderId }}" class="cell-label__row">
                 <van-icon name="orders-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
                 <text>订单ID：{{ item.orderId }}</text>
@@ -79,8 +83,8 @@
               通过
             </van-button>
           </view>
-        </block>
-      </van-cell-group>
+        </van-cell-group>
+      </view>
     </block>
 
     <!-- 空态 -->

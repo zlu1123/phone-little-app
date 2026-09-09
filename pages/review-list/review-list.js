@@ -21,6 +21,9 @@ Page({
     total: 0,
     hasMore: true,
 
+    // 底部安全区距离（px），防止系统横条遮挡底部内容
+    bottomSafe: 0,
+
     // 金额输入弹窗
     showAmountDialog: false,
     amountInput: '',
@@ -33,7 +36,26 @@ Page({
   },
 
   onLoad() {
+    this.initSafeArea();
     this.fetchReviewList();
+  },
+
+  // 计算底部安全区距离（px），防止系统手势横条遮挡底部内容
+  initSafeArea() {
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      let bottomSafe = 0;
+      if (systemInfo.safeArea && typeof systemInfo.safeArea.bottom === 'number') {
+        bottomSafe = Math.max(0, systemInfo.screenHeight - systemInfo.safeArea.bottom);
+      }
+      // 部分安卓机型 safeArea 返回全屏，但手势横条仍会遮挡底部，兜底预留
+      if (bottomSafe === 0 && systemInfo.platform === 'android') {
+        bottomSafe = 24;
+      }
+      this.setData({ bottomSafe });
+    } catch (e) {
+      console.error('获取安全区信息失败:', e);
+    }
   },
 
   onPullDownRefresh() {

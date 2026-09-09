@@ -108,10 +108,12 @@ Page({
                 this.setData({ isLoading: false });
               }
             },
-            fail: () => {
+            fail: (err) => {
+              console.error('微信登录请求失败:', err);
               wx.showToast({
-                title: '网络请求失败',
-                icon: 'none'
+                title: err.errMsg || '网络请求失败',
+                icon: 'none',
+                duration: 3000
               });
               this.setData({ isLoading: false });
             }
@@ -124,9 +126,10 @@ Page({
           this.setData({ isLoading: false });
         }
       },
-      fail: () => {
+      fail: (err) => {
+        console.error('wx.login失败:', err);
         wx.showToast({
-          title: '登录失败，请重试',
+          title: err.errMsg || '登录失败，请重试',
           icon: 'none'
         });
         this.setData({ isLoading: false });
@@ -196,10 +199,12 @@ Page({
                 this.setData({ isLoading: false });
               }
             },
-            fail: () => {
+            fail: (err) => {
+              console.error('手机号登录请求失败:', err);
               wx.showToast({
-                title: '网络请求失败',
-                icon: 'none'
+                title: err.errMsg || '网络请求失败',
+                icon: 'none',
+                duration: 3000
               });
               this.setData({ isLoading: false });
             }
@@ -212,9 +217,10 @@ Page({
           this.setData({ isLoading: false });
         }
       },
-      fail: () => {
+      fail: (err) => {
+        console.error('wx.login失败:', err);
         wx.showToast({
-          title: '登录失败，请重试',
+          title: err.errMsg || '登录失败，请重试',
           icon: 'none'
         });
         this.setData({ isLoading: false });
@@ -298,10 +304,12 @@ Page({
           this.setData({ isLoading: false });
         }
       },
-      fail: () => {
+      fail: (err) => {
+        console.error('密码登录请求失败:', err);
         wx.showToast({
-          title: '网络请求失败',
-          icon: 'none'
+          title: err.errMsg || '网络请求失败',
+          icon: 'none',
+          duration: 3000
         });
         this.setData({ isLoading: false });
       }
