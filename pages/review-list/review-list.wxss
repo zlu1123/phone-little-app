@@ -24,12 +24,25 @@
   margin-top: 4rpx;
 }
 
+/* 列表项 label 行 */
 .cell-label__row {
   display: flex;
   align-items: center;
   font-size: 24rpx;
   color: #646566;
   line-height: 1.8;
+}
+
+/* 卡片右上角「查看详情」入口 */
+.detail-entry {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  margin-left: 12rpx;
+  color: #1989fa;
+  font-size: 24rpx;
+  line-height: 24px;
+  flex-shrink: 0;
 }
 
 /* 操作按钮区（位于所属订单卡片底部） */
@@ -44,6 +57,35 @@
 /* 弹窗内容 */
 .dialog-body {
   padding: 0 24rpx;
+}
+
+/* 订单详情弹窗 */
+.detail-scroll {
+  max-height: 60vh;
+  padding: 8rpx 24rpx 16rpx;
+  box-sizing: border-box;
+}
+
+.detail-row {
+  display: flex;
+  padding: 10rpx 0;
+  font-size: 26rpx;
+  line-height: 1.6;
+  border-bottom: 1rpx solid #f2f3f5;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  flex-shrink: 0;
+  color: #969799;
+}
+
+.detail-value {
+  color: #323233;
+  word-break: break-all;
 }
 
 /* 加载更多 */

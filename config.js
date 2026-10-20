@@ -63,7 +63,9 @@ const API_ENDPOINTS = {
   // 待审核 - 查询赔付订单列表（带status筛选）
   getCompensationOrderList: '/wechat/api/getCompensationOrderList',
   // 待审核 - 修改赔付订单（通过/驳回）
-  updateCompensationOrder: '/wechat/api/updateCompensationOrder'
+  updateCompensationOrder: '/wechat/api/updateCompensationOrder',
+  // 订单详情（复用管理端详情接口）
+  getOrderDetail: '/system/order/getDetail'
 };
 
 const joinUrl = (baseUrl, path) => {

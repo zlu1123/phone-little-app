@@ -1,3 +1,4 @@
+<page-meta page-style="{{ (showDetailDialog || showAmountDialog || showRejectDialog) ? 'overflow: hidden;' : '' }}" />
 <view class="review-page" style="padding-bottom: calc(20px + {{ bottomSafe }}px);">
   <van-nav-bar
     title="待审核列表"
@@ -16,13 +17,26 @@
         <view class="list-count">共 {{ total }} 条待审核订单</view>
       </view>
 
-      <view class="order-card" wx:for="{{ orderList }}" wx:key="id">
+      <view
+        class="order-card"
+        wx:for="{{ orderList }}"
+        wx:key="id"
+      >
         <van-cell-group inset>
           <van-cell
             title="赔付客户名：{{ item.name }}"
             use-label-slot
             custom-style="padding-bottom: 0;"
           >
+            <view
+              slot="extra"
+              class="detail-entry"
+              catch:tap="handleViewDetail"
+              data-order-id="{{ item.orderId }}"
+            >
+              <text>查看详情</text>
+              <van-icon name="arrow" size="12" color="#1989fa" />
+            </view>
             <view slot="label" class="cell-label">
               <view wx:if="{{ item.createByName }}" class="cell-label__row">
                 <van-icon name="manager-o" size="14" color="#969799" custom-style="margin-right: 8rpx;" />
@@ -148,6 +162,23 @@
         bind:change="handleRejectReasonInput"
       />
     </view>
+  </van-dialog>
+
+  <!-- 订单详情弹窗 -->
+  <van-dialog
+    use-slot
+    show="{{ showDetailDialog }}"
+    title="订单详情"
+    show-cancel-button="{{ false }}"
+    confirm-button-text="关闭"
+    bind:close="onCloseDetailDialog"
+  >
+    <scroll-view scroll-y class="detail-scroll">
+      <view class="detail-row" wx:for="{{ orderDetailRows }}" wx:key="label">
+        <text class="detail-label">{{ item.label }}：</text>
+        <text class="detail-value">{{ item.value }}</text>
+      </view>
+    </scroll-view>
   </van-dialog>
 
   <van-toast id="van-toast" />

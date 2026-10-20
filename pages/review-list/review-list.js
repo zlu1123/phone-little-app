@@ -1,4 +1,4 @@
-const { buildApiUrl, API_ENDPOINTS } = require('../../config');
+const { buildApiUrl, API_ENDPOINTS, BUSINESS_CONSTANTS } = require('../../config');
 const { formatDateTime } = require('../../utils/date');
 const { request } = require('../../utils/request');
 
@@ -9,6 +9,93 @@ const formatRowsTime = (rows) =>
     createTime: formatDateTime(row.createTime, row.createTime || ''),
     updateTime: formatDateTime(row.updateTime, row.updateTime || '')
   }));
+
+/** 品牌码 → 品牌名（与管理端 ruoyi-ui 的 phoneType 映射一致） */
+const getBrandName = (phoneType) => {
+  const brand = BUSINESS_CONSTANTS.DEFAULT_PHONE_BRANDS.find((b) => b.value === String(phoneType));
+  return brand ? brand.name : phoneType || '';
+};
+
+/** 订单类型：与管理端 ruoyi-ui/src/views/info/list/index.vue 的 skipApiCall slot 一致 */
+const getOrderType = (d) => {
+  if (d.skipApiCall === 1 && d.oldPhoneStatus === 0) return '无旧手机新手机签约';
+  if (d.oldPhoneStatus === 0) return '无旧手机';
+  if (d.skipApiCall === 1 && d.oldPhoneStatus === 1) return '旧手机丢失/遗失新签约';
+  if (d.oldPhoneStatus === 1) return '旧手机丢失/遗失去亚丁';
+  return '旧手机识别';
+};
+
+/** 渠道：与管理端 getChannel 逻辑一致 */
+const getChannel = (d) => {
+  if (d.channel) return d.channel;
+  if (d.skipApiCall === 0) {
+    const coverage = (d.coverage || '').substring(0, 10);
+    const sysTime = (d.sysTime || '').substring(0, 10);
+    if (!coverage || !sysTime) return '自有';
+    return coverage > sysTime ? '亚丁' : '自有';
+  }
+  if (d.oldPhoneStatus === 0) return '自有';
+  return d.oldPhoneUsageMonths === 0 ? '亚丁' : '自有';
+};
+
+/** 旧手机使用月数：与管理端展示一致 */
+const getUsageMonths = (v) => {
+  if (v === 0) return '小于24个月';
+  if (v === 24) return '大于24个月';
+  return v ? `> ${v}` : '-';
+};
+
+/** 旧手机质保状态：与管理端一致 */
+const getWarrantyStatus = (d) => {
+  if (d.activated === undefined || d.activated === null) return '--';
+  if (!d.activated) return '未激活';
+  if (!d.coverage) return '已激活';
+  if (!d.sysTime) return '已激活';
+  const coverageTime = new Date(String(d.coverage).replace(/\//g, '-')).getTime();
+  const sysTime = new Date(String(d.sysTime).replace(/\//g, '-')).getTime();
+  if (Number.isNaN(coverageTime) || Number.isNaN(sysTime)) return '已激活';
+  return coverageTime <= sysTime ? '已过保' : '保修中';
+};
+
+/** 日期字符串 → yyyy-MM-dd（与管理端 de() 一致） */
+const formatDate = (v) => {
+  if (v === null || v === undefined || v === '') return v;
+  const s = String(v).replace(/\//g, '-').trim();
+  return s.length >= 10 ? s.substring(0, 10) : s;
+};
+
+/** 把详情对象转成 [{label, value}] 展示行，标签与计算逻辑对齐管理端 */
+const buildDetailRows = (d) => {
+  const rows = [];
+  const push = (label, value) => {
+    if (value !== null && value !== undefined && value !== '') rows.push({ label, value: String(value) });
+  };
+
+  push('订单ID', d.id);
+  push('订单类型', getOrderType(d));
+  push('渠道', getChannel(d));
+  push('留资人姓名', d.name);
+  push('留资人电话', d.phoneNum);
+  push('店员名称', d.nickName);
+  push('所属门店', d.storeName);
+  push('手机品牌', getBrandName(d.phoneType));
+  push('手机型号', d.model);
+  push('序列号', d.sn);
+  push('IMEI1', d.imei1);
+  push('IMEI2', d.imei2);
+  push('旧手机使用月数', getUsageMonths(d.oldPhoneUsageMonths));
+  push('激活日期', formatDate(d.activateDate));
+  push('鸭宝查询保修到期时间', formatDate(d.coverage));
+  push('系统时间', d.sysTime);
+  rows.push({ label: '鸭宝激活状态', value: d.activated ? '已激活' : '--' });
+  rows.push({ label: '旧手机质保状态', value: getWarrantyStatus(d) });
+  push('签名型号', d.signatureModel);
+  push('签名IMEI', d.signatureImei);
+  push('签名日期', d.signatureDate);
+  push('创建时间', formatDateTime(d.createTime, ''));
+
+  return rows;
+};
 
 Page({
   data: {
@@ -32,7 +119,11 @@ Page({
     // 驳回原因弹窗
     showRejectDialog: false,
     rejectReasonInput: '',
-    pendingAction: ''
+    pendingAction: '',
+
+    // 订单详情弹窗
+    showDetailDialog: false,
+    orderDetailRows: []
   },
 
   onLoad() {
@@ -72,6 +163,42 @@ Page({
 
   handleBack() {
     wx.navigateBack({ delta: 1 });
+  },
+
+  // 查看订单详情：点击卡片右上角「查看详情」→ 调管理端详情接口 → 弹窗展示
+  handleViewDetail(e) {
+    const orderId = e.currentTarget.dataset.orderId;
+    if (!orderId) return;
+
+    wx.showLoading({ title: '加载详情中...', mask: true });
+    request({
+      url: buildApiUrl(API_ENDPOINTS.getOrderDetail),
+      method: 'GET',
+      data: { id: orderId },
+      success: (res) => {
+        const body = res.data;
+        if (body && body.code === 200) {
+          this.setData({
+            orderDetailRows: buildDetailRows(body),
+            showDetailDialog: true
+          });
+        } else {
+          wx.showToast({ title: (body && body.msg) || '查询详情失败', icon: 'none' });
+        }
+      },
+      fail: (err) => {
+        console.error('查询订单详情失败:', err);
+        wx.showToast({ title: '网络异常', icon: 'none' });
+      },
+      complete: () => {
+        wx.hideLoading();
+      }
+    });
+  },
+
+  // 关闭订单详情弹窗
+  onCloseDetailDialog() {
+    this.setData({ showDetailDialog: false, orderDetailRows: [] });
   },
 
   fetchReviewList() {
