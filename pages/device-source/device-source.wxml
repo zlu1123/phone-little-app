@@ -54,7 +54,46 @@
         >
           <van-icon slot="icon" name="clear" size="32" color="#ee0a24" custom-style="margin-right: 20rpx;" />
         </van-cell>
+        <van-cell
+          title="新机对接亚丁"
+          label="选择新机机型，无需旧机信息，先签约再对接亚丁"
+          is-link
+          bind:click="handleOpenModelPicker"
+        >
+          <van-icon slot="icon" name="gem-o" size="32" color="#1989fa" custom-style="margin-right: 20rpx;" />
+        </van-cell>
       </van-cell-group>
     </view>
   </view>
+
+  <!-- 新机机型选择弹层 -->
+  <van-popup
+    show="{{ showModelPicker }}"
+    position="bottom"
+    round
+    closeable
+    close-icon="cross"
+    custom-class="model-picker"
+    lock-scroll="{{ true }}"
+    overlay="{{ true }}"
+    bind:close="handleCloseModelPicker"
+    bind:click-overlay="handleCloseModelPicker"
+    catch:touchmove="handleNoop"
+  >
+    <view class="model-picker__inner" catch:tap="handleNoop" catch:touchmove="handleNoop">
+      <view class="model-picker__title">选择新机机型</view>
+      <view class="model-picker__desc">选择后进入签约，手机型号自动带入且可修改；签约完成后按亚丁屏卫流程操作</view>
+      <van-cell-group>
+        <van-cell
+          wx:for="{{ specialModels }}"
+          wx:key="model"
+          title="{{ item.model }}"
+          label="{{ item.desc }}"
+          is-link
+          data-model="{{ item.model }}"
+          bind:click="handlePickModel"
+        />
+      </van-cell-group>
+    </view>
+  </van-popup>
 </view>

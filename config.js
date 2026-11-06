@@ -104,6 +104,21 @@ const BUSINESS_CONSTANTS = {
 };
 
 /**
+ * 特殊新机机型（后期可在此维护）：选中后不走旧机识别，直接对接亚丁屏卫
+ * - model：新机型号，带入签约页 signatureModel
+ * - title / desc：设备来源页展示文案
+ * - channel：订单渠道，落库 phone_active_info.channel
+ */
+const SPECIAL_NEW_PHONE_MODELS = [
+  {
+    model: 'iPhoneDuo',
+    title: '新机为 iPhoneDuo',
+    desc: '无需旧机信息，直接对接亚丁屏卫',
+    channel: '亚丁'
+  },
+];
+
+/**
  * 功能开关：统一在这里维护
  */
 const FEATURE_FLAGS = {
@@ -136,6 +151,7 @@ module.exports = {
   API_BASE_BY_ENV,
   API_ENDPOINTS,
   BUSINESS_CONSTANTS,
+  SPECIAL_NEW_PHONE_MODELS,
   FEATURE_FLAGS,
   buildApiUrl,
   getApiBase,
