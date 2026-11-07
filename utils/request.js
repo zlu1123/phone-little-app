@@ -10,16 +10,20 @@ const { buildApiUrl } = require('../config');
 
 // 是否正在跳转登录页：一旦置 true，本次会话内不再触发重复弹窗/跳转
 let isRedirectingToLogin = false;
+// 本次会话是否已弹过「登录失效」提示，避免反复弹窗打扰用户
+let loginPromptShown = false;
 
 /**
  * 重置"正在跳转登录页"标志
  */
 const resetLoginRedirectFlag = () => {
   isRedirectingToLogin = false;
+  loginPromptShown = false;
 };
 
 /**
  * 处理 401 登录过期
+ * 提供「去登录 / 暂不登录」两个选项，不强制用户登录；同一会话只提示一次。
  */
 const handleUnauthorized = () => {
   if (isRedirectingToLogin) return;
@@ -28,18 +32,36 @@ const handleUnauthorized = () => {
   try { wx.hideLoading(); } catch (_e) { /* ignore */ }
   try { wx.hideToast(); } catch (_e) { /* ignore */ }
 
-  try { wx.clearStorageSync(); } catch (_e) { /* ignore */ }
+  // 只清理登录态，保留 isGuest 等浏览态标记
+  try {
+    wx.removeStorageSync('token');
+    wx.removeStorageSync('tokenExpireTime');
+    wx.removeStorageSync('isLoggedIn');
+    wx.removeStorageSync('userInfo');
+  } catch (_e) { /* ignore */ }
+
+  // 已提示过则不再弹窗，避免反复打扰
+  if (loginPromptShown) {
+    isRedirectingToLogin = false;
+    return;
+  }
+  loginPromptShown = true;
 
   wx.showModal({
-    title: '登录过期',
-    content: '当前登录状态已过期，请重新登录',
-    showCancel: false,
-    confirmText: '重新登录',
-    success: () => {
-      wx.reLaunch({ url: '/pages/login/login' });
+    title: '登录状态已失效',
+    content: '可重新登录以继续使用内部功能，也可以暂不登录先浏览。',
+    showCancel: true,
+    cancelText: '暂不登录',
+    confirmText: '去登录',
+    success: (res) => {
+      if (res.confirm) {
+        wx.reLaunch({ url: '/pages/login/login' });
+      } else {
+        isRedirectingToLogin = false;
+      }
     },
     fail: () => {
-      wx.reLaunch({ url: '/pages/login/login' });
+      isRedirectingToLogin = false;
     }
   });
 };

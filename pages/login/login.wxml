@@ -2,11 +2,25 @@
   <!-- 状态栏占位 -->
   <view style="height: {{ statusBarHeight }}px;"></view>
 
+  <!-- 自定义导航栏：返回（可取消登录，不强制） -->
+  <view class="login-nav">
+    <view class="login-nav__back" bindtap="handleBack" aria-label="返回">
+      <van-icon name="arrow-left" size="20px" color="#323233" />
+      <text class="login-nav__back-text">返回</text>
+    </view>
+  </view>
+
   <!-- Logo 区域 -->
   <view class="logo-section">
     <view class="logo-wrapper">
       <van-icon name="scan" size="60px" color="#1989fa" />
     </view>
+  </view>
+
+  <!-- 内部员工使用提示（审核合规） -->
+  <view class="staff-notice">
+    <van-icon name="info-o" size="14px" color="#1989fa" />
+    <text class="staff-notice__text">本小程序仅限内部员工使用，已进行账号鉴权</text>
   </view>
 
   <!-- 登录/注册切换 Tab (暂时隐藏注册入口) -->
@@ -79,5 +93,12 @@
       <text>和</text>
       <text class="agreement-link" bindtap="handleViewAgreement" data-type="privacy">《隐私政策》</text>
     </view>
+  </view>
+
+  <!-- 暂不登录（游客体验入口） -->
+  <view class="cancel-section">
+    <van-button plain round block bind:click="handleGuestLogin">
+      暂不登录，先去逛逛
+    </van-button>
   </view>
 </view>

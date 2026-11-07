@@ -237,3 +237,44 @@
   color: #1989fa;
   margin: 0 4rpx;
 }
+
+/* 自定义导航栏：返回（可取消登录） */
+.login-nav {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+}
+
+.login-nav__back {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 16rpx 8rpx 0;
+}
+
+.login-nav__back-text {
+  font-size: 28rpx;
+  color: #323233;
+}
+
+/* 内部员工使用提示（审核合规） */
+.staff-notice {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 32rpx;
+  padding: 16rpx 20rpx;
+  background: rgba(25, 137, 250, 0.08);
+  border-radius: 12rpx;
+}
+
+.staff-notice__text {
+  font-size: 24rpx;
+  color: #4a6b8a;
+  line-height: 1.5;
+}
+
+/* 暂不登录 */
+.cancel-section {
+  padding: 40rpx 0 60rpx;
+}

@@ -13,7 +13,8 @@
     "pages/device-source/device-source",
     "pages/device-ocr/device-ocr",
     "pages/usage-duration/usage-duration",
-    "pages/device-form/device-form"
+    "pages/device-form/device-form",
+    "pages/about/about"
   ],
   "window": {
     "navigationBarTextStyle": "black",

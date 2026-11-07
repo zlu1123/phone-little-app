@@ -32,7 +32,8 @@ Page({
   handleBack() {
     wx.navigateBack({
       fail() {
-        wx.reLaunch({ url: '/pages/login/login' });
+        // 无上一页时回到首页，不强制用户登录
+        wx.switchTab({ url: '/pages/imei-query/imei-query' });
       }
     });
   },

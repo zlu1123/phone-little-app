@@ -1,0 +1,28 @@
+<view class="about-page">
+  <van-nav-bar
+    title="关于我们"
+    left-arrow
+    fixed="{{true}}"
+    placeholder="{{true}}"
+    z-index="{{100}}"
+    bind:click-left="handleBack"
+  ></van-nav-bar>
+
+  <view class="about-card">
+    <view class="about-logo">
+      <van-icon name="scan" size="56px" color="#1989fa" />
+    </view>
+    <view class="about-name">保修查询助手</view>
+    <view class="about-version">当前版本 v1.0.0</view>
+
+    <view class="about-notice">
+      <van-icon name="info-o" size="14px" color="#1989fa" />
+      <text class="about-notice__text">本小程序仅限内部员工使用，已进行账号鉴权</text>
+    </view>
+
+    <van-cell-group inset class="about-cells">
+      <van-cell title="服务内容" label="手机保修查询、设备激活与签约、理赔订单管理等内部业务功能" />
+      <van-cell title="使用范围" label="仅限公司内部员工在授权范围内使用" />
+    </van-cell-group>
+  </view>
+</view>

@@ -8,9 +8,31 @@
   background-color: #1989fa;
   padding: 20px 20px 50px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   color: #fff;
   position: relative;
+}
+
+.user-header__main {
+  display: flex;
+  align-items: center;
+}
+
+/* 内部员工使用提示（审核合规） */
+.staff-notice {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 20px;
+  padding: 12rpx 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8rpx;
+}
+
+.staff-notice__text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.4;
 }
 
 .avatar-container {
@@ -106,4 +128,8 @@
 /* 游客登录入口 */
 .login-section {
   padding: 30px 16px 0;
+}
+
+.skip-login-wrap {
+  margin-top: 20rpx;
 }

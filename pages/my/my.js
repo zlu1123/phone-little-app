@@ -1,5 +1,5 @@
 const { API_ENDPOINTS, buildApiUrl } = require('../../config');
-const { request, isRedirectingToLogin } = require('../../utils/request');
+const { request } = require('../../utils/request');
 
 Page({
   data: {
@@ -102,21 +102,7 @@ Page({
       canPlaceOrder: isValidLogin && userInfo.canPlaceOrder !== false
     });
 
-    // 如果未登录且不是游客模式，跳转到登录页
-    // 检查 isRedirectingToLogin 锁，防止与 401 拦截器重复弹窗
-    if (!isValidLogin && !isGuest && !isRedirectingToLogin()) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      setTimeout(() => {
-        wx.navigateTo({
-          url: '/pages/login/login'
-        });
-      }, 1000);
-      return;
-    }
-
+    // 未登录时不再自动跳转/反复弹窗：由用户在页面上主动选择「登录」或「暂不登录」
     // 已登录用户通过查询手机型号列表接口前置校验 token 是否真正有效
     if (isValidLogin && !isGuest) {
       this.verifyTokenByApi();
@@ -151,6 +137,11 @@ Page({
         url: '/pages/login/login'
       });
     }
+  },
+
+  // 暂不登录，返回查询页继续浏览（不强制登录）
+  handleSkipToQuery() {
+    wx.switchTab({ url: '/pages/imei-query/imei-query' });
   },
 
   // 退出登录

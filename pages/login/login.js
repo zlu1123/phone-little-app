@@ -30,6 +30,16 @@ Page({
     });
   },
 
+  // 返回上一页；若无上一页则回到查询首页（可取消登录，不强制）
+  handleBack() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      wx.switchTab({ url: '/pages/imei-query/imei-query' });
+    }
+  },
+
   // 切换登录/注册模式
   handleSwitchMode(e) {
     const mode = e.currentTarget.dataset.mode;
